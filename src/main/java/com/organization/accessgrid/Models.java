@@ -28,8 +28,6 @@ public class Models {
         private String employeeId;
         @JsonProperty("tag_id")
         private String tagId;
-        @JsonProperty("allow_on_multiple_devices")
-        private boolean allowOnMultipleDevices;
         @JsonProperty("full_name")
         private String fullName;
         private String email;
