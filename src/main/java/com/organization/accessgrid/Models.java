@@ -15,6 +15,24 @@ import lombok.NoArgsConstructor;
  */
 public class Models {
     /**
+     * Device associated with an access pass.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Device {
+        private String id;
+        private String platform;
+        @JsonProperty("device_type")
+        private String deviceType;
+        private String status;
+        @JsonProperty("created_at")
+        private String createdAt;
+        @JsonProperty("updated_at")
+        private String updatedAt;
+    }
+
+    /**
      * Request model for provisioning a new access card.
      */
     @Data
@@ -80,6 +98,21 @@ public class Models {
         private String fullName;
         @JsonProperty("expiration_date")
         private String expirationDate;
+        @JsonProperty("card_template_id")
+        private String cardTemplateId;
+        @JsonProperty("card_number")
+        private String cardNumber;
+        @JsonProperty("site_code")
+        private String siteCode;
+        @JsonProperty("file_data")
+        private String fileData;
+        @JsonProperty("direct_install_url")
+        private String directInstallUrl;
+        @JsonProperty("install_url")
+        private String installUrl;
+        private Object details;
+        private List<Device> devices;
+        private java.util.Map<String, Object> metadata;
     }
 
     /**

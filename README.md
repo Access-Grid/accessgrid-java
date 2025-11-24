@@ -20,9 +20,9 @@ Add the following dependency to your `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>com.organization</groupId>
+    <groupId>com.accessgrid</groupId>
     <artifactId>access-grid-sdk</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
@@ -31,7 +31,7 @@ Add the following dependency to your `pom.xml`:
 Add to your `build.gradle`:
 
 ```groovy
-implementation 'com.organization:access-grid-sdk:1.0.0'
+implementation 'com.accessgrid:access-grid-sdk:1.1.0'
 ```
 
 ## Quick Start
@@ -58,6 +58,22 @@ ProvisionCardRequest request = ProvisionCardRequest.builder()
 
 Card card = client.accessCards().provision(request);
 System.out.println("Card Installed: " + card.getUrl());
+```
+
+### Getting an Access Card
+
+```java
+Card card = client.accessCards().get("0xc4rd1d");
+
+System.out.println("Card ID: " + card.getId());
+System.out.println("State: " + card.getState());
+System.out.println("Full Name: " + card.getFullName());
+System.out.println("Install URL: " + card.getInstallUrl());
+System.out.println("Expiration Date: " + card.getExpirationDate());
+System.out.println("Card Number: " + card.getCardNumber());
+System.out.println("Site Code: " + card.getSiteCode());
+System.out.println("Devices: " + card.getDevices().size());
+System.out.println("Metadata: " + card.getMetadata());
 ```
 
 ### Creating a Card Template

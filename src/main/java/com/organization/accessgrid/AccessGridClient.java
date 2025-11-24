@@ -84,6 +84,21 @@ public class AccessGridClient {
                 throw new AccessGridException("Error provisioning card", e);
             }
         }
+
+        /**
+         * Get details about a specific access card.
+         */
+        public Models.Card get(String cardId) {
+            try {
+                String payload = client.objectMapper.writeValueAsString(java.util.Collections.singletonMap("id", cardId));
+                HttpRequest httpRequest = client.createSignedGetRequest("/nfc-keys/" + cardId, payload);
+                HttpResponse<String> response = client.sendRequest(httpRequest);
+
+                return client.objectMapper.readValue(response.body(), Models.Card.class);
+            } catch (IOException | InterruptedException e) {
+                throw new AccessGridException("Error getting card", e);
+            }
+        }
     }
 
     /**
@@ -158,7 +173,7 @@ public class AccessGridClient {
 
     /**
      * Create a signed HTTP request.
-     * 
+     *
      * @param method HTTP method
      * @param path API endpoint path
      * @param payload Request body
@@ -166,13 +181,33 @@ public class AccessGridClient {
      */
     private HttpRequest createSignedRequest(String method, String path, String payload) {
         String signature = generateSignature(payload);
-        
+
         return HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + path))
             .header("X-ACCT-ID", this.accountId)
             .header("X-PAYLOAD-SIG", signature)
             .header("Content-Type", "application/json")
             .method(method, HttpRequest.BodyPublishers.ofString(payload))
+            .build();
+    }
+
+    /**
+     * Create a signed HTTP GET request.
+     *
+     * @param path API endpoint path
+     * @param payload Payload for signature
+     * @return Signed HTTP GET request
+     */
+    private HttpRequest createSignedGetRequest(String path, String payload) {
+        String signature = generateSignature(payload);
+        String encodedPayload = java.net.URLEncoder.encode(payload, StandardCharsets.UTF_8);
+
+        return HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + path + "?sig_payload=" + encodedPayload))
+            .header("X-ACCT-ID", this.accountId)
+            .header("X-PAYLOAD-SIG", signature)
+            .header("Content-Type", "application/json")
+            .GET()
             .build();
     }
 
