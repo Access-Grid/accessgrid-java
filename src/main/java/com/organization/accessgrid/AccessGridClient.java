@@ -15,6 +15,7 @@ import java.util.List;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
@@ -71,13 +72,23 @@ public class AccessGridClient {
         }
 
         /**
-         * Provision a new access card.
+         * Provision a new access card or unified access pass.
+         * Returns a UnifiedAccessPass when issuing to a template pair (contains both Apple and Android cards).
+         * Returns a Card when issuing to a single template.
          */
-        public Models.Card provision(Models.ProvisionCardRequest request) {
+        public Models.Union provision(Models.ProvisionCardRequest request) {
             try {
                 String payload = client.objectMapper.writeValueAsString(request);
                 HttpRequest httpRequest = client.createSignedRequest("POST", "/nfc-keys", payload);
                 HttpResponse<String> response = client.sendRequest(httpRequest);
+
+                // Check if response contains a details array (indicates UnifiedAccessPass)
+                JsonNode rootNode = client.objectMapper.readTree(response.body());
+                JsonNode detailsNode = rootNode.get("details");
+
+                if (detailsNode != null && detailsNode.isArray()) {
+                    return client.objectMapper.readValue(response.body(), Models.UnifiedAccessPass.class);
+                }
 
                 return client.objectMapper.readValue(response.body(), Models.Card.class);
             } catch (IOException | InterruptedException e) {
@@ -86,13 +97,23 @@ public class AccessGridClient {
         }
 
         /**
-         * Get details about a specific access card.
+         * Get details about a specific access card or unified access pass.
+         * Returns a UnifiedAccessPass when retrieving a template pair.
+         * Returns a Card when retrieving a single card.
          */
-        public Models.Card get(String cardId) {
+        public Models.Union get(String cardId) {
             try {
                 String payload = client.objectMapper.writeValueAsString(java.util.Collections.singletonMap("id", cardId));
                 HttpRequest httpRequest = client.createSignedGetRequest("/nfc-keys/" + cardId, payload);
                 HttpResponse<String> response = client.sendRequest(httpRequest);
+
+                // Check if response contains a details array (indicates UnifiedAccessPass)
+                JsonNode rootNode = client.objectMapper.readTree(response.body());
+                JsonNode detailsNode = rootNode.get("details");
+
+                if (detailsNode != null && detailsNode.isArray()) {
+                    return client.objectMapper.readValue(response.body(), Models.UnifiedAccessPass.class);
+                }
 
                 return client.objectMapper.readValue(response.body(), Models.Card.class);
             } catch (IOException | InterruptedException e) {
