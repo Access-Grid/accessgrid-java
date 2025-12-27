@@ -60,6 +60,40 @@ Card card = client.accessCards().provision(request);
 System.out.println("Card Installed: " + card.getUrl());
 ```
 
+### UnifiedAccessPass (Template Pairs)
+
+When provisioning to a template pair (Apple + Android), you'll receive a `UnifiedAccessPass` containing both cards:
+
+```java
+ProvisionCardRequest request = ProvisionCardRequest.builder()
+    .cardTemplateId("99b18646f12")  // Template pair ID
+    .fullName("Jane Smith")
+    .email("jane.smith@company.com")
+    .build();
+
+Union result = client.accessCards().provision(request);
+
+if (result instanceof UnifiedAccessPass) {
+    UnifiedAccessPass pass = (UnifiedAccessPass) result;
+    System.out.println("Unified Pass ID: " + pass.getId());
+    System.out.println("Install URL: " + pass.getUrl());
+    System.out.println("Cards count: " + pass.getDetails().size());
+
+    // Access individual cards
+    for (Card card : pass.getDetails()) {
+        System.out.println("Card ID: " + card.getId());
+        System.out.println("Template: " + card.getCardTemplateId());
+    }
+}
+```
+
+**Important:** `get()` always returns `Card`, never `UnifiedAccessPass`. To retrieve individual cards from a pair, use the card IDs from the `details` array:
+
+```java
+Card appleCard = client.accessCards().get(pass.getDetails().get(0).getId());
+Card androidCard = client.accessCards().get(pass.getDetails().get(1).getId());
+```
+
 ### Getting an Access Card
 
 ```java

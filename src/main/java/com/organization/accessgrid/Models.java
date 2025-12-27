@@ -15,6 +15,37 @@ import lombok.NoArgsConstructor;
  */
 public class Models {
     /**
+     * Abstract base class for access card responses.
+     * Both single cards (Card) and unified access passes (UnifiedAccessPass) extend this class.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static abstract class Union {
+        private String id;
+        @JsonProperty("install_url")
+        private String url;
+        private String state;
+    }
+
+    /**
+     * Unified Access Pass containing multiple cards (Apple + Android). Only returned from provision() when using a template pair.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UnifiedAccessPass extends Union {
+        private String status;
+        private List<Card> details;
+
+        public UnifiedAccessPass(String id, String url, String state, String status, List<Card> details) {
+            super(id, url, state);
+            this.status = status;
+            this.details = details;
+        }
+    }
+
+    /**
      * Device associated with an access pass.
      */
     @Data
@@ -86,12 +117,8 @@ public class Models {
      */
     @Data
     @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Card {
-        @JsonProperty("install_url")
-        private String url;
-        private String id;
-        private String state;
+    public static class Card extends Union {
+        private String status;
         @JsonProperty("full_name")
         private String fullName;
         @JsonProperty("expiration_date")
