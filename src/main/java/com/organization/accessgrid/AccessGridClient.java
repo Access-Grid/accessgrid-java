@@ -73,16 +73,6 @@ public class AccessGridClient {
 
         /**
          * Provision a new access card or unified access pass.
-         *
-         * When provisioning to a template pair (Apple + Android):
-         *   - Returns UnifiedAccessPass
-         *   - UnifiedAccessPass.details contains both Card instances (Apple and Android)
-         *
-         * When provisioning to a single template:
-         *   - Returns Card
-         *
-         * @param request The provision request containing template ID and user details
-         * @return UnifiedAccessPass if provisioning to template pair, Card otherwise
          */
         public Models.Union provision(Models.ProvisionCardRequest request) {
             try {
@@ -105,14 +95,7 @@ public class AccessGridClient {
         }
 
         /**
-         * Alias for provision(). Issue a new access card or unified access pass.
-         *
-         * This method behaves identically to provision():
-         * - Returns UnifiedAccessPass when issuing to a template pair
-         * - Returns Card when issuing to a single template
-         *
-         * @param request The provision request containing template ID and user details
-         * @return UnifiedAccessPass if issuing to template pair, Card otherwise
+         * Alias for provision().
          */
         public Models.Union issue(Models.ProvisionCardRequest request) {
             return provision(request);
@@ -120,11 +103,6 @@ public class AccessGridClient {
 
         /**
          * Get details about a specific access card by ID.
-         *
-         * Note: This method always returns Card, never UnifiedAccessPass.
-         * UnifiedAccessPass is only returned from provision() when provisioning
-         * to a template pair. When retrieving individual cards (even if they are
-         * part of a template pair), the API returns a Card object.
          */
         public Models.Card get(String cardId) {
             try {
