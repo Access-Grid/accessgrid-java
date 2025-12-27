@@ -29,8 +29,7 @@ public class Models {
     }
 
     /**
-     * Unified Access Pass containing multiple cards (Apple + Android).
-     * Returned when issuing to a template pair.
+     * Unified Access Pass containing multiple cards (Apple + Android). Only returned from provision() when using a template pair.
      */
     @Data
     @NoArgsConstructor
@@ -119,6 +118,7 @@ public class Models {
     @Data
     @NoArgsConstructor
     public static class Card extends Union {
+        private String status;
         @JsonProperty("full_name")
         private String fullName;
         @JsonProperty("expiration_date")

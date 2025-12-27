@@ -73,13 +73,21 @@ public class AccessGridClient {
 
         /**
          * Provision a new access card or unified access pass.
-         * Returns a UnifiedAccessPass when issuing to a template pair (contains both Apple and Android cards).
-         * Returns a Card when issuing to a single template.
+         *
+         * When provisioning to a template pair (Apple + Android):
+         *   - Returns UnifiedAccessPass
+         *   - UnifiedAccessPass.details contains both Card instances (Apple and Android)
+         *
+         * When provisioning to a single template:
+         *   - Returns Card
+         *
+         * @param request The provision request containing template ID and user details
+         * @return UnifiedAccessPass if provisioning to template pair, Card otherwise
          */
         public Models.Union provision(Models.ProvisionCardRequest request) {
             try {
                 String payload = client.objectMapper.writeValueAsString(request);
-                HttpRequest httpRequest = client.createSignedRequest("POST", "/nfc-keys", payload);
+                HttpRequest httpRequest = client.createSignedRequest("POST", "/key-cards", payload);
                 HttpResponse<String> response = client.sendRequest(httpRequest);
 
                 // Check if response contains a details array (indicates UnifiedAccessPass)
@@ -97,23 +105,32 @@ public class AccessGridClient {
         }
 
         /**
-         * Get details about a specific access card or unified access pass.
-         * Returns a UnifiedAccessPass when retrieving a template pair.
-         * Returns a Card when retrieving a single card.
+         * Alias for provision(). Issue a new access card or unified access pass.
+         *
+         * This method behaves identically to provision():
+         * - Returns UnifiedAccessPass when issuing to a template pair
+         * - Returns Card when issuing to a single template
+         *
+         * @param request The provision request containing template ID and user details
+         * @return UnifiedAccessPass if issuing to template pair, Card otherwise
          */
-        public Models.Union get(String cardId) {
+        public Models.Union issue(Models.ProvisionCardRequest request) {
+            return provision(request);
+        }
+
+        /**
+         * Get details about a specific access card by ID.
+         *
+         * Note: This method always returns Card, never UnifiedAccessPass.
+         * UnifiedAccessPass is only returned from provision() when provisioning
+         * to a template pair. When retrieving individual cards (even if they are
+         * part of a template pair), the API returns a Card object.
+         */
+        public Models.Card get(String cardId) {
             try {
                 String payload = client.objectMapper.writeValueAsString(java.util.Collections.singletonMap("id", cardId));
-                HttpRequest httpRequest = client.createSignedGetRequest("/nfc-keys/" + cardId, payload);
+                HttpRequest httpRequest = client.createSignedGetRequest("/key-cards/" + cardId, payload);
                 HttpResponse<String> response = client.sendRequest(httpRequest);
-
-                // Check if response contains a details array (indicates UnifiedAccessPass)
-                JsonNode rootNode = client.objectMapper.readTree(response.body());
-                JsonNode detailsNode = rootNode.get("details");
-
-                if (detailsNode != null && detailsNode.isArray()) {
-                    return client.objectMapper.readValue(response.body(), Models.UnifiedAccessPass.class);
-                }
 
                 return client.objectMapper.readValue(response.body(), Models.Card.class);
             } catch (IOException | InterruptedException e) {
