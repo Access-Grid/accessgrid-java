@@ -262,4 +262,62 @@ public class Models {
         private String userAgent;
         private Object metadata;
     }
+
+    /**
+     * Basic template information
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TemplateInfo {
+        private String id;
+        private String name;
+        private String platform;
+    }
+
+    /**
+     * Represents a pair of iOS and Android templates
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PassTemplatePair {
+        private String id;
+        private String name;
+        @JsonProperty("created_at")
+        private String createdAt;
+        @JsonProperty("android_template")
+        private TemplateInfo androidTemplate;
+        @JsonProperty("ios_template")
+        private TemplateInfo iosTemplate;
+    }
+
+    /**
+     * Pagination information
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Pagination {
+        @JsonProperty("current_page")
+        private int currentPage;
+        @JsonProperty("per_page")
+        private int perPage;
+        @JsonProperty("total_pages")
+        private int totalPages;
+        @JsonProperty("total_count")
+        private int totalCount;
+    }
+
+    /**
+     * Response from listing pass template pairs
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ListPassTemplatePairsResponse {
+        @JsonProperty("pass_template_pairs")
+        private List<PassTemplatePair> passTemplatePairs;
+        private Pagination pagination;
+    }
 }

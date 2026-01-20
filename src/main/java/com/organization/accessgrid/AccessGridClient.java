@@ -125,6 +125,41 @@ public class AccessGridClient {
                 throw new AccessGridException("Error creating template", e);
             }
         }
+
+        /**
+         * List pass template pairs with pagination support.
+         *
+         * @param page Page number for pagination (optional)
+         * @param perPage Number of results per page (optional, default: 50, max: 100)
+         * @return Paginated list of pass template pairs
+         */
+        public Models.ListPassTemplatePairsResponse listPassTemplatePairs(Integer page, Integer perPage) {
+            try {
+                StringBuilder path = new StringBuilder("/v1/console/pass-template-pairs");
+                String payload = "{}";
+
+                // Build query parameters
+                if (page != null || perPage != null) {
+                    path.append("?");
+                    if (page != null) {
+                        path.append("page=").append(page);
+                        if (perPage != null) {
+                            path.append("&");
+                        }
+                    }
+                    if (perPage != null) {
+                        path.append("per_page=").append(perPage);
+                    }
+                }
+
+                HttpRequest httpRequest = client.createSignedGetRequest(path.toString(), payload);
+                HttpResponse<String> response = client.sendRequest(httpRequest);
+
+                return client.objectMapper.readValue(response.body(), Models.ListPassTemplatePairsResponse.class);
+            } catch (IOException | InterruptedException e) {
+                throw new AccessGridException("Error listing pass template pairs", e);
+            }
+        }
     }
 
     /**
