@@ -118,6 +118,72 @@ public class AccessGridClient {
         public Models.Card get(String cardId) {
             return client.get("/key-cards/" + cardId, cardId, Models.Card.class);
         }
+
+        /**
+         * Update an existing access card.
+         */
+        public Models.Card update(Models.UpdateCardRequest request) {
+            String payload = client.serialize(request);
+            return client.patch("/key-cards/" + request.getCardId(), payload, Models.Card.class);
+        }
+
+        /**
+         * List access cards with optional filters.
+         */
+        public java.util.List<Models.Card> list(Models.ListKeysParams params) {
+            StringBuilder query = new StringBuilder();
+            if (params != null) {
+                if (params.getTemplateId() != null)
+                    appendParam(query, "template_id", params.getTemplateId());
+                if (params.getState() != null)
+                    appendParam(query, "state", params.getState());
+            }
+            return java.util.Arrays.asList(
+                client.getWithParams("/key-cards", query.toString(), Models.Card[].class)
+            );
+        }
+
+        /**
+         * List access cards without filters.
+         */
+        public java.util.List<Models.Card> list() {
+            return list(null);
+        }
+
+        /**
+         * Suspend an access card.
+         */
+        public void suspend(String cardId) {
+            client.postEmpty("/key-cards/" + cardId + "/suspend", cardId);
+        }
+
+        /**
+         * Resume a suspended access card.
+         */
+        public void resume(String cardId) {
+            client.postEmpty("/key-cards/" + cardId + "/resume", cardId);
+        }
+
+        /**
+         * Unlink an access card from its device.
+         */
+        public void unlink(String cardId) {
+            client.postEmpty("/key-cards/" + cardId + "/unlink", cardId);
+        }
+
+        /**
+         * Delete an access card.
+         */
+        public void delete(String cardId) {
+            client.postEmpty("/key-cards/" + cardId + "/delete", cardId);
+        }
+
+        private void appendParam(StringBuilder sb, String key, String value) {
+            if (sb.length() > 0) sb.append("&");
+            sb.append(java.net.URLEncoder.encode(key, java.nio.charset.StandardCharsets.UTF_8));
+            sb.append("=");
+            sb.append(java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8));
+        }
     }
 
     /**
