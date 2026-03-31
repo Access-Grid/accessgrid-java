@@ -203,6 +203,159 @@ public class AccessGridClient {
             String payload = client.serialize(request);
             return client.post("/console/card-templates", payload, Models.Template.class);
         }
+
+        /**
+         * Update an existing card template.
+         */
+        public Models.Template updateTemplate(Models.UpdateTemplateRequest request) {
+            String payload = client.serialize(request);
+            return client.put("/console/card-templates/" + request.getCardTemplateId(), payload, Models.Template.class);
+        }
+
+        /**
+         * Read a card template by ID.
+         */
+        public Models.Template readTemplate(String templateId) {
+            return client.get("/console/card-templates/" + templateId, templateId, Models.Template.class);
+        }
+
+        /**
+         * Get event logs for a card template.
+         */
+        public java.util.List<Models.Event> eventLog(String templateId, Models.EventLogFilters filters) {
+            StringBuilder query = new StringBuilder();
+            if (filters != null) {
+                if (filters.getDevice() != null)
+                    appendParam(query, "device", filters.getDevice());
+                if (filters.getStartDate() != null)
+                    appendParam(query, "start_date", filters.getStartDate().toString());
+                if (filters.getEndDate() != null)
+                    appendParam(query, "end_date", filters.getEndDate().toString());
+                if (filters.getEventType() != null)
+                    appendParam(query, "event_type", filters.getEventType());
+            }
+            Models.EventLogResponse response = client.getWithParams(
+                "/console/card-templates/" + templateId + "/logs",
+                query.toString(),
+                Models.EventLogResponse.class
+            );
+            return response != null && response.getEvents() != null
+                ? response.getEvents()
+                : new java.util.ArrayList<>();
+        }
+
+        /**
+         * Get event logs for a card template without filters.
+         */
+        public java.util.List<Models.Event> eventLog(String templateId) {
+            return eventLog(templateId, null);
+        }
+
+        /**
+         * Get ledger/billing items.
+         */
+        public Models.LedgerItemsResult ledgerItems(Models.LedgerItemsParams params) {
+            StringBuilder query = new StringBuilder();
+            if (params != null) {
+                if (params.getPage() != null)
+                    appendParam(query, "page", params.getPage().toString());
+                if (params.getPerPage() != null)
+                    appendParam(query, "per_page", params.getPerPage().toString());
+                if (params.getStartDate() != null)
+                    appendParam(query, "start_date", params.getStartDate().toString());
+                if (params.getEndDate() != null)
+                    appendParam(query, "end_date", params.getEndDate().toString());
+            }
+            Models.LedgerItemsResult result = client.getWithParams(
+                "/console/ledger-items",
+                query.toString(),
+                Models.LedgerItemsResult.class
+            );
+            return result != null ? result : new Models.LedgerItemsResult();
+        }
+
+        /**
+         * Get ledger/billing items without filters.
+         */
+        public Models.LedgerItemsResult ledgerItems() {
+            return ledgerItems(null);
+        }
+
+        /**
+         * iOS In-App Provisioning preflight.
+         */
+        public Models.IosPreflightResponse iosPreflight(String cardTemplateId, String accessPassExId) {
+            String payload = client.serialize(java.util.Map.of("access_pass_ex_id", accessPassExId));
+            return client.post("/console/card-templates/" + cardTemplateId + "/ios_preflight", payload, Models.IosPreflightResponse.class);
+        }
+
+        /**
+         * HID-related services.
+         */
+        public HIDApi hid() {
+            return new HIDApi(client);
+        }
+
+        private void appendParam(StringBuilder sb, String key, String value) {
+            if (sb.length() > 0) sb.append("&");
+            sb.append(java.net.URLEncoder.encode(key, java.nio.charset.StandardCharsets.UTF_8));
+            sb.append("=");
+            sb.append(java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8));
+        }
+    }
+
+    /**
+     * API for HID-related operations.
+     */
+    public static class HIDApi {
+        private final AccessGridClient client;
+
+        HIDApi(AccessGridClient client) {
+            this.client = client;
+        }
+
+        /**
+         * HID Organizations API.
+         */
+        public HIDOrgsApi orgs() {
+            return new HIDOrgsApi(client);
+        }
+    }
+
+    /**
+     * API for HID Organization operations.
+     */
+    public static class HIDOrgsApi {
+        private final AccessGridClient client;
+
+        HIDOrgsApi(AccessGridClient client) {
+            this.client = client;
+        }
+
+        /**
+         * Create a new HID organization.
+         */
+        public Models.HIDOrg create(Models.CreateHIDOrgParams params) {
+            String payload = client.serialize(params);
+            return client.post("/console/hid/orgs", payload, Models.HIDOrg.class);
+        }
+
+        /**
+         * List all HID organizations.
+         */
+        public java.util.List<Models.HIDOrg> list() {
+            return java.util.Arrays.asList(
+                client.getWithParams("/console/hid/orgs", "", Models.HIDOrg[].class)
+            );
+        }
+
+        /**
+         * Complete HID org registration with credentials.
+         */
+        public Models.HIDOrg activate(Models.CompleteHIDOrgParams params) {
+            String payload = client.serialize(params);
+            return client.post("/console/hid/orgs/activate", payload, Models.HIDOrg.class);
+        }
     }
 
     // --- Internal HTTP methods ---

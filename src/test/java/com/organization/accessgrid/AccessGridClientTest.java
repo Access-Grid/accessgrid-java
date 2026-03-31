@@ -270,6 +270,159 @@ public class AccessGridClientTest {
         assertEquals("eng", card.getMetadata().get("dept"));
     }
 
+    // --- Console: Update Template ---
+
+    @Test
+    public void testUpdateTemplateSendsPutToConsoleCardTemplates() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"tmpl-1\",\"name\":\"Updated Template\"}");
+
+        Models.UpdateTemplateRequest request = Models.UpdateTemplateRequest.builder()
+            .cardTemplateId("tmpl-1")
+            .name("Updated Template")
+            .backgroundColor("#FFFFFF")
+            .build();
+
+        Models.Template template = client.console().updateTemplate(request);
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/card-templates/tmpl-1"), "Should PUT to /console/card-templates/{id}");
+        assertEquals("PUT", captured.method());
+        assertEquals("Updated Template", template.getName());
+    }
+
+    // --- Console: Read Template ---
+
+    @Test
+    public void testReadTemplateSendsGetToConsoleCardTemplates() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"tmpl-1\",\"name\":\"My Template\",\"platform\":\"apple\",\"protocol\":\"desfire\",\"allow_on_multiple_devices\":true}");
+
+        Models.Template template = client.console().readTemplate("tmpl-1");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/card-templates/tmpl-1"), "Should GET /console/card-templates/{id}");
+        assertEquals("GET", captured.method());
+        assertEquals("tmpl-1", template.getId());
+        assertEquals("My Template", template.getName());
+        assertTrue(template.isAllowOnMultipleDevices());
+    }
+
+    // --- Console: Event Log ---
+
+    @Test
+    public void testEventLogSendsGetToLogs() throws IOException, InterruptedException {
+        mockResponse("{\"events\":[{\"type\":\"install\",\"user_id\":\"user-1\"}]}");
+
+        java.util.List<Models.Event> events = client.console().eventLog("tmpl-1");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/card-templates/tmpl-1/logs"), "Should GET /console/card-templates/{id}/logs");
+        assertEquals("GET", captured.method());
+        assertEquals(1, events.size());
+        assertEquals("install", events.get(0).getType());
+    }
+
+    @Test
+    public void testEventLogWithFiltersSendsQueryParams() throws IOException, InterruptedException {
+        mockResponse("{\"events\":[]}");
+
+        Models.EventLogFilters filters = Models.EventLogFilters.builder()
+            .device("mobile")
+            .eventType("install")
+            .build();
+
+        java.util.List<Models.Event> events = client.console().eventLog("tmpl-1", filters);
+
+        HttpRequest captured = captureRequest();
+        String query = captured.uri().getQuery();
+        assertTrue(query != null && query.contains("device=mobile"), "Should include device param");
+        assertTrue(query != null && query.contains("event_type=install"), "Should include event_type param");
+    }
+
+    // --- Console: Ledger Items ---
+
+    @Test
+    public void testLedgerItemsSendsGetToLedgerItems() throws IOException, InterruptedException {
+        mockResponse("{\"ledger_items\":[{\"id\":\"li-1\",\"amount\":\"5.00\",\"kind\":\"provision\",\"created_at\":\"2026-01-01\",\"access_pass\":{\"ex_id\":\"ap-1\",\"pass_template\":{\"ex_id\":\"pt-1\"}}}],\"pagination\":{\"current_page\":1,\"total_pages\":1,\"total_count\":1,\"per_page\":50}}");
+
+        Models.LedgerItemsResult result = client.console().ledgerItems();
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/ledger-items"), "Should GET /console/ledger-items");
+        assertEquals(1, result.getLedgerItems().size());
+        assertEquals("5.00", result.getLedgerItems().get(0).getAmount());
+        assertEquals("provision", result.getLedgerItems().get(0).getKind());
+        assertEquals("ap-1", result.getLedgerItems().get(0).getAccessPass().getExId());
+        assertEquals("pt-1", result.getLedgerItems().get(0).getAccessPass().getPassTemplate().getExId());
+    }
+
+    // --- Console: iOS Preflight ---
+
+    @Test
+    public void testIosPreflightSendsPostToIosPreflight() throws IOException, InterruptedException {
+        mockResponse("{\"provisioningCredentialIdentifier\":\"pci-1\",\"sharingInstanceIdentifier\":\"sii-1\",\"cardTemplateIdentifier\":\"cti-1\",\"environmentIdentifier\":\"ei-1\"}");
+
+        Models.IosPreflightResponse response = client.console().iosPreflight("tmpl-1", "ap-ex-1");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/card-templates/tmpl-1/ios_preflight"), "Should POST to ios_preflight");
+        assertEquals("POST", captured.method());
+        assertEquals("pci-1", response.getProvisioningCredentialIdentifier());
+        assertEquals("sii-1", response.getSharingInstanceIdentifier());
+    }
+
+    // --- Console: HID Orgs ---
+
+    @Test
+    public void testHIDOrgsCreateSendsPostToHidOrgs() throws IOException, InterruptedException {
+        mockResponse("{\"id\":1,\"name\":\"My Org\",\"slug\":\"my-org\",\"first_name\":\"Ada\",\"last_name\":\"Lovelace\",\"status\":\"pending\"}");
+
+        Models.CreateHIDOrgParams params = Models.CreateHIDOrgParams.builder()
+            .name("My Org")
+            .fullAddress("1 Main St, NY NY")
+            .phone("+1-555-0000")
+            .firstName("Ada")
+            .lastName("Lovelace")
+            .build();
+
+        Models.HIDOrg org = client.console().hid().orgs().create(params);
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().endsWith("/console/hid/orgs"), "Should POST to /console/hid/orgs");
+        assertEquals("POST", captured.method());
+        assertEquals("My Org", org.getName());
+        assertEquals("my-org", org.getSlug());
+    }
+
+    @Test
+    public void testHIDOrgsListSendsGetToHidOrgs() throws IOException, InterruptedException {
+        mockResponse("[{\"id\":1,\"name\":\"Org 1\",\"slug\":\"org-1\"},{\"id\":2,\"name\":\"Org 2\",\"slug\":\"org-2\"}]");
+
+        java.util.List<Models.HIDOrg> orgs = client.console().hid().orgs().list();
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().endsWith("/console/hid/orgs"), "Should GET /console/hid/orgs");
+        assertEquals("GET", captured.method());
+        assertEquals(2, orgs.size());
+        assertEquals("Org 1", orgs.get(0).getName());
+    }
+
+    @Test
+    public void testHIDOrgsActivateSendsPostToActivate() throws IOException, InterruptedException {
+        mockResponse("{\"id\":1,\"name\":\"My Org\",\"slug\":\"my-org\",\"status\":\"active\"}");
+
+        Models.CompleteHIDOrgParams params = Models.CompleteHIDOrgParams.builder()
+            .email("admin@example.com")
+            .password("hid-password-123")
+            .build();
+
+        Models.HIDOrg org = client.console().hid().orgs().activate(params);
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().endsWith("/console/hid/orgs/activate"), "Should POST to /console/hid/orgs/activate");
+        assertEquals("POST", captured.method());
+        assertEquals("active", org.getStatus());
+    }
+
     // --- Template params serialization ---
 
     @Test
