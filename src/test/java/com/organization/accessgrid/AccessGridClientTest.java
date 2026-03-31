@@ -125,6 +125,95 @@ public class AccessGridClientTest {
         assertEquals("Jane Doe", card.getFullName());
     }
 
+    @Test
+    public void testUpdateCardSendsPatchToKeyCards() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"card-789\",\"state\":\"active\",\"full_name\":\"Updated Name\"}");
+
+        Models.UpdateCardRequest request = Models.UpdateCardRequest.builder()
+            .cardId("card-789")
+            .fullName("Updated Name")
+            .title("Senior Developer")
+            .build();
+
+        Models.Card card = client.accessCards().update(request);
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/key-cards/card-789"), "Should PATCH /key-cards/{id}");
+        assertEquals("PATCH", captured.method());
+        assertEquals("Updated Name", card.getFullName());
+    }
+
+    @Test
+    public void testListCardsSendsGetToKeyCards() throws IOException, InterruptedException {
+        mockResponse("[{\"id\":\"card-1\",\"state\":\"active\"},{\"id\":\"card-2\",\"state\":\"suspended\"}]");
+
+        java.util.List<Models.Card> cards = client.accessCards().list();
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().endsWith("/key-cards"), "Should GET /key-cards");
+        assertEquals("GET", captured.method());
+        assertEquals(2, cards.size());
+        assertEquals("card-1", cards.get(0).getId());
+    }
+
+    @Test
+    public void testListCardsWithFiltersSendsQueryParams() throws IOException, InterruptedException {
+        mockResponse("[{\"id\":\"card-1\",\"state\":\"active\"}]");
+
+        Models.ListKeysParams params = Models.ListKeysParams.builder()
+            .templateId("tmpl-1")
+            .state("active")
+            .build();
+
+        java.util.List<Models.Card> cards = client.accessCards().list(params);
+
+        HttpRequest captured = captureRequest();
+        String query = captured.uri().getQuery();
+        assertNotNull(query);
+        assertTrue(query.contains("template_id=tmpl-1"), "Should include template_id param");
+        assertTrue(query.contains("state=active"), "Should include state param");
+    }
+
+    @Test
+    public void testSuspendCardSendsPostToSuspend() throws IOException, InterruptedException {
+        mockResponse("{}");
+        client.accessCards().suspend("card-123");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/key-cards/card-123/suspend"), "Should POST to /key-cards/{id}/suspend");
+        assertEquals("POST", captured.method());
+    }
+
+    @Test
+    public void testResumeCardSendsPostToResume() throws IOException, InterruptedException {
+        mockResponse("{}");
+        client.accessCards().resume("card-123");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/key-cards/card-123/resume"), "Should POST to /key-cards/{id}/resume");
+        assertEquals("POST", captured.method());
+    }
+
+    @Test
+    public void testUnlinkCardSendsPostToUnlink() throws IOException, InterruptedException {
+        mockResponse("{}");
+        client.accessCards().unlink("card-123");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/key-cards/card-123/unlink"), "Should POST to /key-cards/{id}/unlink");
+        assertEquals("POST", captured.method());
+    }
+
+    @Test
+    public void testDeleteCardSendsPostToDelete() throws IOException, InterruptedException {
+        mockResponse("{}");
+        client.accessCards().delete("card-123");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/key-cards/card-123/delete"), "Should POST to /key-cards/{id}/delete");
+        assertEquals("POST", captured.method());
+    }
+
     // --- Console API ---
 
     @Test

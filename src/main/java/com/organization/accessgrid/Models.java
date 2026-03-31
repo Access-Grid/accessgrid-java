@@ -194,6 +194,19 @@ public class Models {
     }
 
     /**
+     * Parameters for listing access cards.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ListKeysParams {
+        @JsonProperty("template_id")
+        private String templateId;
+        private String state;
+    }
+
+    /**
      * Template design configuration.
      */
     @Data
