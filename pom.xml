@@ -6,7 +6,7 @@
 
     <groupId>com.accessgrid</groupId>
     <artifactId>access-grid-sdk</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 
     <name>Access Grid SDK</name>
     <description>Java SDK for Access Grid API</description>
@@ -41,7 +41,7 @@
         
         <!-- Dependency versions -->
         <jackson.version>2.15.2</jackson.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.44</lombok.version>
     </properties>
 
     <dependencies>
@@ -79,6 +79,18 @@
             <version>5.8.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.11.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.11.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <distributionManagement>
@@ -112,6 +124,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
+                <configuration>
+                    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+                </configuration>
             </plugin>
 
             <!-- Central Publishing Plugin -->

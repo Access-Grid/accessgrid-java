@@ -88,8 +88,6 @@ public class Models {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Card {
-        @JsonProperty("install_url")
-        private String url;
         private String id;
         private String state;
         @JsonProperty("full_name")
@@ -104,13 +102,17 @@ public class Models {
         private String siteCode;
         @JsonProperty("file_data")
         private String fileData;
-        @JsonProperty("direct_install_url")
-        private String directInstallUrl;
         @JsonProperty("install_url")
         private String installUrl;
+        @JsonProperty("direct_install_url")
+        private String directInstallUrl;
         private Object details;
         private List<Device> devices;
         private java.util.Map<String, Object> metadata;
+
+        public String getUrl() {
+            return installUrl;
+        }
     }
 
     /**
