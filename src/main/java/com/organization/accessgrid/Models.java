@@ -305,9 +305,175 @@ public class Models {
         private ZonedDateTime timestamp;
         @JsonProperty("user_id")
         private String userId;
+        @JsonProperty("ip_address")
         private String ipAddress;
         @JsonProperty("user_agent")
         private String userAgent;
         private Object metadata;
+    }
+
+    /**
+     * Response wrapper for event logs.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EventLogResponse {
+        private List<Event> events;
+    }
+
+    /**
+     * Parameters for listing ledger items.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LedgerItemsParams {
+        private Integer page;
+        @JsonProperty("per_page")
+        private Integer perPage;
+        @JsonProperty("start_date")
+        private ZonedDateTime startDate;
+        @JsonProperty("end_date")
+        private ZonedDateTime endDate;
+    }
+
+    /**
+     * Ledger item access pass info.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LedgerAccessPass {
+        @JsonProperty("ex_id")
+        private String exId;
+        @JsonProperty("pass_template")
+        private LedgerPassTemplate passTemplate;
+    }
+
+    /**
+     * Ledger item pass template info.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LedgerPassTemplate {
+        @JsonProperty("ex_id")
+        private String exId;
+    }
+
+    /**
+     * Ledger item model.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LedgerItem {
+        private String id;
+        private String amount;
+        private String kind;
+        @JsonProperty("created_at")
+        private String createdAt;
+        @JsonProperty("access_pass")
+        private LedgerAccessPass accessPass;
+    }
+
+    /**
+     * Response wrapper for ledger items.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LedgerItemsResult {
+        @JsonProperty("ledger_items")
+        private List<LedgerItem> ledgerItems;
+        private Pagination pagination;
+    }
+
+    /**
+     * Pagination info.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Pagination {
+        @JsonProperty("current_page")
+        private int currentPage;
+        @JsonProperty("total_pages")
+        private int totalPages;
+        @JsonProperty("total_count")
+        private int totalCount;
+        @JsonProperty("per_page")
+        private int perPage;
+    }
+
+    /**
+     * HID Organization model.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HIDOrg {
+        private int id;
+        private String name;
+        private String slug;
+        @JsonProperty("first_name")
+        private String firstName;
+        @JsonProperty("last_name")
+        private String lastName;
+        private String phone;
+        @JsonProperty("full_address")
+        private String fullAddress;
+        private String status;
+        @JsonProperty("created_at")
+        private String createdAt;
+    }
+
+    /**
+     * Request model for creating a HID organization.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateHIDOrgParams {
+        private String name;
+        @JsonProperty("full_address")
+        private String fullAddress;
+        private String phone;
+        @JsonProperty("first_name")
+        private String firstName;
+        @JsonProperty("last_name")
+        private String lastName;
+    }
+
+    /**
+     * Request model for completing HID org registration.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CompleteHIDOrgParams {
+        private String email;
+        private String password;
+    }
+
+    /**
+     * Response model for iOS In-App Provisioning preflight.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class IosPreflightResponse {
+        @JsonProperty("provisioningCredentialIdentifier")
+        private String provisioningCredentialIdentifier;
+        @JsonProperty("sharingInstanceIdentifier")
+        private String sharingInstanceIdentifier;
+        @JsonProperty("cardTemplateIdentifier")
+        private String cardTemplateIdentifier;
+        @JsonProperty("environmentIdentifier")
+        private String environmentIdentifier;
     }
 }
