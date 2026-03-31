@@ -46,6 +46,8 @@ public class Models {
         private String employeeId;
         @JsonProperty("tag_id")
         private String tagId;
+        @JsonProperty("allow_on_multiple_devices")
+        private boolean allowOnMultipleDevices;
         @JsonProperty("full_name")
         private String fullName;
         private String email;
@@ -58,6 +60,8 @@ public class Models {
         private String expirationDate;
         @JsonProperty("employee_photo")
         private String employeePhoto;
+        private String title;
+        private java.util.Map<String, Object> metadata;
     }
 
     /**
@@ -79,6 +83,7 @@ public class Models {
         private String expirationDate;
         @JsonProperty("employee_photo")
         private String employeePhoto;
+        private String title;
     }
 
     /**
@@ -134,9 +139,23 @@ public class Models {
         private int watchCount;
         @JsonProperty("iphone_count")
         private int iphoneCount;
-        private TemplateDesign design;
-        @JsonProperty("support_info")
-        private SupportInfo supportInfo;
+        @JsonProperty("background_color")
+        private String backgroundColor;
+        @JsonProperty("label_color")
+        private String labelColor;
+        @JsonProperty("label_secondary_color")
+        private String labelSecondaryColor;
+        @JsonProperty("support_url")
+        private String supportUrl;
+        @JsonProperty("support_phone_number")
+        private String supportPhoneNumber;
+        @JsonProperty("support_email")
+        private String supportEmail;
+        @JsonProperty("privacy_policy_url")
+        private String privacyPolicyUrl;
+        @JsonProperty("terms_and_conditions_url")
+        private String termsAndConditionsUrl;
+        private java.util.Map<String, Object> metadata;
     }
 
     /**
@@ -156,8 +175,22 @@ public class Models {
         private int watchCount;
         @JsonProperty("iphone_count")
         private int iphoneCount;
-        @JsonProperty("support_info")
-        private SupportInfo supportInfo;
+        @JsonProperty("background_color")
+        private String backgroundColor;
+        @JsonProperty("label_color")
+        private String labelColor;
+        @JsonProperty("label_secondary_color")
+        private String labelSecondaryColor;
+        @JsonProperty("support_url")
+        private String supportUrl;
+        @JsonProperty("support_phone_number")
+        private String supportPhoneNumber;
+        @JsonProperty("support_email")
+        private String supportEmail;
+        @JsonProperty("privacy_policy_url")
+        private String privacyPolicyUrl;
+        @JsonProperty("terms_and_conditions_url")
+        private String termsAndConditionsUrl;
     }
 
     /**

@@ -181,6 +181,78 @@ public class AccessGridClientTest {
         assertEquals("eng", card.getMetadata().get("dept"));
     }
 
+    // --- Template params serialization ---
+
+    @Test
+    public void testCreateTemplateSerializesWithFlatParams() throws Exception {
+        Models.CreateTemplateRequest request = Models.CreateTemplateRequest.builder()
+            .name("Employee Access Pass")
+            .platform("apple")
+            .useCase("employee_badge")
+            .protocol("desfire")
+            .allowOnMultipleDevices(true)
+            .watchCount(2)
+            .iphoneCount(3)
+            .backgroundColor("#FFFFFF")
+            .labelColor("#000000")
+            .labelSecondaryColor("#333333")
+            .supportUrl("https://help.example.com")
+            .supportPhoneNumber("+1-555-123-4567")
+            .supportEmail("support@example.com")
+            .privacyPolicyUrl("https://example.com/privacy")
+            .termsAndConditionsUrl("https://example.com/terms")
+            .metadata(java.util.Map.of("version", "2.1"))
+            .build();
+
+        String json = client.objectMapper.writeValueAsString(request);
+
+        // Flat params at root level
+        assertTrue(json.contains("\"background_color\":\"#FFFFFF\""), "background_color should be flat");
+        assertTrue(json.contains("\"label_color\":\"#000000\""), "label_color should be flat");
+        assertTrue(json.contains("\"support_url\":\"https://help.example.com\""), "support_url should be flat");
+        assertTrue(json.contains("\"support_email\":\"support@example.com\""), "support_email should be flat");
+        assertTrue(json.contains("\"privacy_policy_url\":\"https://example.com/privacy\""), "privacy_policy_url should be flat");
+        assertTrue(json.contains("\"metadata\":{\"version\":\"2.1\"}"), "metadata should be present");
+
+        // No nested objects
+        assertFalse(json.contains("\"design\""), "Should not have nested design object");
+        assertFalse(json.contains("\"support_info\""), "Should not have nested support_info object");
+    }
+
+    @Test
+    public void testUpdateTemplateSerializesWithFlatParams() throws Exception {
+        Models.UpdateTemplateRequest request = Models.UpdateTemplateRequest.builder()
+            .cardTemplateId("tmpl-123")
+            .name("Updated Pass")
+            .backgroundColor("#FFFFFF")
+            .labelColor("#000000")
+            .supportUrl("https://help.example.com")
+            .supportEmail("support@example.com")
+            .build();
+
+        String json = client.objectMapper.writeValueAsString(request);
+
+        assertTrue(json.contains("\"background_color\":\"#FFFFFF\""), "background_color should be flat");
+        assertTrue(json.contains("\"support_url\":\"https://help.example.com\""), "support_url should be flat");
+        assertFalse(json.contains("\"design\""), "Should not have nested design object");
+        assertFalse(json.contains("\"support_info\""), "Should not have nested support_info object");
+    }
+
+    @Test
+    public void testProvisionCardRequestIncludesTitleAndMetadata() throws Exception {
+        Models.ProvisionCardRequest request = Models.ProvisionCardRequest.builder()
+            .cardTemplateId("tmpl-1")
+            .fullName("John Doe")
+            .title("Engineering Manager")
+            .metadata(java.util.Map.of("department", "engineering"))
+            .build();
+
+        String json = client.objectMapper.writeValueAsString(request);
+
+        assertTrue(json.contains("\"title\":\"Engineering Manager\""), "title should be present");
+        assertTrue(json.contains("\"department\":\"engineering\""), "metadata should be present");
+    }
+
     // --- Auth headers ---
 
     @Test
