@@ -22,7 +22,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  */
 public class AccessGridClient {
     private static final String DEFAULT_BASE_URL = "https://api.accessgrid.com/v1";
-    private static final String VERSION = "1.2.0";
+    private static final String VERSION = "1.3.0";
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
 
     private final String accountId;
@@ -290,6 +290,38 @@ public class AccessGridClient {
         }
 
         /**
+         * List all landing pages.
+         */
+        public java.util.List<Models.LandingPage> listLandingPages() {
+            return java.util.Arrays.asList(
+                client.getWithParams("/console/landing-pages", "", Models.LandingPage[].class)
+            );
+        }
+
+        /**
+         * Create a new landing page.
+         */
+        public Models.LandingPage createLandingPage(Models.CreateLandingPageRequest request) {
+            String payload = client.serialize(request);
+            return client.post("/console/landing-pages", payload, Models.LandingPage.class);
+        }
+
+        /**
+         * Update an existing landing page.
+         */
+        public Models.LandingPage updateLandingPage(Models.UpdateLandingPageRequest request) {
+            String payload = client.serialize(request);
+            return client.patch("/console/landing-pages/" + request.getLandingPageId(), payload, Models.LandingPage.class);
+        }
+
+        /**
+         * Credential profile operations.
+         */
+        public CredentialProfilesApi credentialProfiles() {
+            return new CredentialProfilesApi(client);
+        }
+
+        /**
          * HID-related services.
          */
         public HIDApi hid() {
@@ -355,6 +387,34 @@ public class AccessGridClient {
         public Models.HIDOrg activate(Models.CompleteHIDOrgParams params) {
             String payload = client.serialize(params);
             return client.post("/console/hid/orgs/activate", payload, Models.HIDOrg.class);
+        }
+    }
+
+    /**
+     * API for Credential Profile operations.
+     */
+    public static class CredentialProfilesApi {
+        private final AccessGridClient client;
+
+        CredentialProfilesApi(AccessGridClient client) {
+            this.client = client;
+        }
+
+        /**
+         * List all credential profiles.
+         */
+        public java.util.List<Models.CredentialProfile> list() {
+            return java.util.Arrays.asList(
+                client.getWithParams("/console/credential-profiles", "", Models.CredentialProfile[].class)
+            );
+        }
+
+        /**
+         * Create a new credential profile.
+         */
+        public Models.CredentialProfile create(Models.CreateCredentialProfileRequest request) {
+            String payload = client.serialize(request);
+            return client.post("/console/credential-profiles", payload, Models.CredentialProfile.class);
         }
     }
 
