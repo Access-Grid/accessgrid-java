@@ -54,6 +54,17 @@ public class Models {
         @JsonProperty("phone_number")
         private String phoneNumber;
         private String classification;
+        private String department;
+        private String location;
+        @JsonProperty("site_name")
+        private String siteName;
+        private String workstation;
+        @JsonProperty("mail_stop")
+        private String mailStop;
+        @JsonProperty("company_address")
+        private String companyAddress;
+        @JsonProperty("organization_name")
+        private String organizationName;
         @JsonProperty("start_date")
         private String startDate;
         @JsonProperty("expiration_date")
@@ -79,6 +90,15 @@ public class Models {
         @JsonProperty("full_name")
         private String fullName;
         private String classification;
+        private String department;
+        private String location;
+        @JsonProperty("site_name")
+        private String siteName;
+        private String workstation;
+        @JsonProperty("mail_stop")
+        private String mailStop;
+        @JsonProperty("company_address")
+        private String companyAddress;
         @JsonProperty("expiration_date")
         private String expirationDate;
         @JsonProperty("employee_photo")
@@ -105,6 +125,17 @@ public class Models {
         private String cardNumber;
         @JsonProperty("site_code")
         private String siteCode;
+        @JsonProperty("organization_name")
+        private String organizationName;
+        private String department;
+        private String location;
+        @JsonProperty("site_name")
+        private String siteName;
+        private String workstation;
+        @JsonProperty("mail_stop")
+        private String mailStop;
+        @JsonProperty("company_address")
+        private String companyAddress;
         @JsonProperty("file_data")
         private String fileData;
         @JsonProperty("install_url")
@@ -475,5 +506,136 @@ public class Models {
         private String cardTemplateIdentifier;
         @JsonProperty("environmentIdentifier")
         private String environmentIdentifier;
+    }
+
+    /**
+     * Landing page response model.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LandingPage {
+        private String id;
+        private String name;
+        private String kind;
+        @JsonProperty("password_protected")
+        private boolean passwordProtected;
+        @JsonProperty("logo_url")
+        private String logoUrl;
+        @JsonProperty("created_at")
+        private String createdAt;
+    }
+
+    /**
+     * Request model for creating a landing page.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateLandingPageRequest {
+        private String name;
+        private String kind;
+        @JsonProperty("additional_text")
+        private String additionalText;
+        @JsonProperty("bg_color")
+        private String bgColor;
+        @JsonProperty("allow_immediate_download")
+        private boolean allowImmediateDownload;
+    }
+
+    /**
+     * Request model for updating a landing page.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateLandingPageRequest {
+        @JsonProperty("landing_page_id")
+        private String landingPageId;
+        private String name;
+        @JsonProperty("additional_text")
+        private String additionalText;
+        @JsonProperty("bg_color")
+        private String bgColor;
+    }
+
+    /**
+     * Credential profile key model.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CredentialProfileKey {
+        private String label;
+        private String value;
+        @JsonProperty("ex_id")
+        private String exId;
+    }
+
+    /**
+     * Credential profile file model.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CredentialProfileFile {
+        @JsonProperty("ex_id")
+        private String exId;
+        @JsonProperty("communication_settings")
+        private String communicationSettings;
+        @JsonProperty("read_rights")
+        private String readRights;
+        @JsonProperty("write_rights")
+        private String writeRights;
+        @JsonProperty("read_write_rights")
+        private String readWriteRights;
+        @JsonProperty("change_rights")
+        private String changeRights;
+    }
+
+    /**
+     * Credential profile response model.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CredentialProfile {
+        private String id;
+        private String aid;
+        private String name;
+        @JsonProperty("apple_id")
+        private String appleId;
+        @JsonProperty("created_at")
+        private String createdAt;
+        @JsonProperty("card_storage")
+        private String cardStorage;
+        private List<CredentialProfileKey> keys;
+        private List<CredentialProfileFile> files;
+    }
+
+    /**
+     * Key parameter for credential profile creation.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class KeyParam {
+        private String value;
+    }
+
+    /**
+     * Request model for creating a credential profile.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateCredentialProfileRequest {
+        private String name;
+        @JsonProperty("app_name")
+        private String appName;
+        private List<KeyParam> keys;
     }
 }
