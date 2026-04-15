@@ -290,6 +290,42 @@ public class AccessGridClient {
         }
 
         /**
+         * List pass template pairs with optional pagination.
+         */
+        public Models.PassTemplatePairsResult listPassTemplatePairs(Models.ListPassTemplatePairsParams params) {
+            StringBuilder query = new StringBuilder();
+            if (params != null) {
+                if (params.getPage() != null)
+                    appendParam(query, "page", params.getPage().toString());
+                if (params.getPerPage() != null)
+                    appendParam(query, "per_page", params.getPerPage().toString());
+            }
+            Models.PassTemplatePairsResult result = client.getWithParams(
+                "/console/card-template-pairs",
+                query.toString(),
+                Models.PassTemplatePairsResult.class
+            );
+            return result != null ? result : new Models.PassTemplatePairsResult();
+        }
+
+        /**
+         * List pass template pairs with default pagination.
+         */
+        public Models.PassTemplatePairsResult listPassTemplatePairs() {
+            return listPassTemplatePairs(null);
+        }
+
+        /**
+         * Create a pass template pair linking an Apple (iOS) and Google (Android)
+         * card template. Both templates must be published (status: ready) and
+         * use the same protocol.
+         */
+        public Models.PassTemplatePair createPassTemplatePair(Models.CreatePassTemplatePairRequest request) {
+            String payload = client.serialize(request);
+            return client.post("/console/card-template-pairs", payload, Models.PassTemplatePair.class);
+        }
+
+        /**
          * List all landing pages.
          */
         public java.util.List<Models.LandingPage> listLandingPages() {

@@ -355,6 +355,69 @@ public class AccessGridClientTest {
         assertEquals("pt-1", result.getLedgerItems().get(0).getAccessPass().getPassTemplate().getExId());
     }
 
+    // --- Console: Pass Template Pairs ---
+
+    @Test
+    public void testListPassTemplatePairsSendsGetToCardTemplatePairs() throws IOException, InterruptedException {
+        mockResponse("{\"card_template_pairs\":[{\"id\":\"pair_1\",\"ex_id\":\"pair_1\",\"name\":\"Employee Badge Pair\",\"created_at\":\"2025-01-01T00:00:00Z\",\"ios_template\":{\"id\":\"tmpl_ios_1\",\"ex_id\":\"tmpl_ios_1\",\"name\":\"iOS Badge\",\"platform\":\"apple\"},\"android_template\":{\"id\":\"tmpl_android_1\",\"ex_id\":\"tmpl_android_1\",\"name\":\"Android Badge\",\"platform\":\"android\"}}],\"pagination\":{\"current_page\":1,\"total_pages\":1,\"total_count\":1,\"per_page\":50}}");
+
+        Models.PassTemplatePairsResult result = client.console().listPassTemplatePairs();
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/card-template-pairs"), "Should GET /console/card-template-pairs");
+        assertEquals("GET", captured.method());
+        assertEquals(1, result.getPassTemplatePairs().size());
+
+        Models.PassTemplatePair pair = result.getPassTemplatePairs().get(0);
+        assertEquals("pair_1", pair.getId());
+        assertEquals("pair_1", pair.getExId());
+        assertEquals("Employee Badge Pair", pair.getName());
+        assertNotNull(pair.getIosTemplate());
+        assertEquals("tmpl_ios_1", pair.getIosTemplate().getExId());
+        assertEquals("apple", pair.getIosTemplate().getPlatform());
+        assertNotNull(pair.getAndroidTemplate());
+        assertEquals("android", pair.getAndroidTemplate().getPlatform());
+    }
+
+    @Test
+    public void testListPassTemplatePairsWithPaginationSendsQueryParams() throws IOException, InterruptedException {
+        mockResponse("{\"card_template_pairs\":[],\"pagination\":{\"current_page\":2,\"total_pages\":5,\"total_count\":100,\"per_page\":10}}");
+
+        Models.ListPassTemplatePairsParams params = Models.ListPassTemplatePairsParams.builder()
+            .page(2)
+            .perPage(10)
+            .build();
+
+        client.console().listPassTemplatePairs(params);
+
+        HttpRequest captured = captureRequest();
+        String query = captured.uri().getQuery();
+        assertTrue(query != null && query.contains("page=2"), "Should include page param");
+        assertTrue(query != null && query.contains("per_page=10"), "Should include per_page param");
+    }
+
+    @Test
+    public void testCreatePassTemplatePairSendsPostToCardTemplatePairs() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"pair_new\",\"ex_id\":\"pair_new\",\"name\":\"New Badge Pair\",\"created_at\":\"2026-04-15T12:00:00Z\",\"ios_template\":{\"id\":\"tmpl_ios\",\"ex_id\":\"tmpl_ios\",\"name\":\"iOS Badge\",\"platform\":\"apple\"},\"android_template\":{\"id\":\"tmpl_android\",\"ex_id\":\"tmpl_android\",\"name\":\"Android Badge\",\"platform\":\"android\"}}");
+
+        Models.CreatePassTemplatePairRequest request = Models.CreatePassTemplatePairRequest.builder()
+            .name("New Badge Pair")
+            .appleCardTemplateId("tmpl_ios")
+            .googleCardTemplateId("tmpl_android")
+            .build();
+
+        Models.PassTemplatePair pair = client.console().createPassTemplatePair(request);
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/card-template-pairs"), "Should POST /console/card-template-pairs");
+        assertEquals("POST", captured.method());
+        assertEquals("pair_new", pair.getId());
+        assertEquals("pair_new", pair.getExId());
+        assertEquals("New Badge Pair", pair.getName());
+        assertEquals("apple", pair.getIosTemplate().getPlatform());
+        assertEquals("android", pair.getAndroidTemplate().getPlatform());
+    }
+
     // --- Console: iOS Preflight ---
 
     @Test

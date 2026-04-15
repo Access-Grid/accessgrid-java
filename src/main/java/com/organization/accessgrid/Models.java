@@ -638,4 +638,79 @@ public class Models {
         private String appName;
         private List<KeyParam> keys;
     }
+
+    /**
+     * Lightweight template reference within a pass template pair.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PassTemplatePairInfo {
+        private String id;
+        @JsonProperty("ex_id")
+        private String exId;
+        private String name;
+        private String platform;
+    }
+
+    /**
+     * A paired iOS/Android pass template configuration.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PassTemplatePair {
+        private String id;
+        @JsonProperty("ex_id")
+        private String exId;
+        private String name;
+        @JsonProperty("created_at")
+        private String createdAt;
+        @JsonProperty("ios_template")
+        private PassTemplatePairInfo iosTemplate;
+        @JsonProperty("android_template")
+        private PassTemplatePairInfo androidTemplate;
+    }
+
+    /**
+     * Response wrapper for listing pass template pairs. The upstream JSON key
+     * is "card_template_pairs"; the Java field name is preserved for
+     * backward compatibility.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PassTemplatePairsResult {
+        @JsonProperty("card_template_pairs")
+        private List<PassTemplatePair> passTemplatePairs;
+        private Pagination pagination;
+    }
+
+    /**
+     * Query params for listing pass template pairs.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ListPassTemplatePairsParams {
+        private Integer page;
+        @JsonProperty("per_page")
+        private Integer perPage;
+    }
+
+    /**
+     * Request model for creating a pass template pair.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreatePassTemplatePairRequest {
+        private String name;
+        @JsonProperty("apple_card_template_id")
+        private String appleCardTemplateId;
+        @JsonProperty("google_card_template_id")
+        private String googleCardTemplateId;
+    }
 }
