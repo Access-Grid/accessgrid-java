@@ -512,6 +512,242 @@ public class AccessGridClientTest {
 
     // --- Error handling ---
 
+    // --- Card model: new fields ---
+
+    @Test
+    public void testCardDeserializationWithNewFields() throws IOException, InterruptedException {
+        String json = "{" +
+            "\"id\":\"card-200\"," +
+            "\"state\":\"active\"," +
+            "\"full_name\":\"Bob Smith\"," +
+            "\"organization_name\":\"Acme Corp\"," +
+            "\"department\":\"Engineering\"," +
+            "\"location\":\"San Francisco\"," +
+            "\"site_name\":\"HQ Building A\"," +
+            "\"workstation\":\"4F-207\"," +
+            "\"mail_stop\":\"MS-401\"," +
+            "\"company_address\":\"123 Main St, San Francisco, CA 94105\"," +
+            "\"install_url\":\"https://example.com/install\"" +
+            "}";
+        mockResponse(json);
+
+        Models.Card card = client.accessCards().get("card-200");
+
+        assertEquals("Acme Corp", card.getOrganizationName());
+        assertEquals("Engineering", card.getDepartment());
+        assertEquals("San Francisco", card.getLocation());
+        assertEquals("HQ Building A", card.getSiteName());
+        assertEquals("4F-207", card.getWorkstation());
+        assertEquals("MS-401", card.getMailStop());
+        assertEquals("123 Main St, San Francisco, CA 94105", card.getCompanyAddress());
+    }
+
+    @Test
+    public void testCardNewFieldsNullWhenAbsent() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"card-201\",\"state\":\"active\"}");
+
+        Models.Card card = client.accessCards().get("card-201");
+
+        assertNull(card.getOrganizationName());
+        assertNull(card.getDepartment());
+        assertNull(card.getLocation());
+        assertNull(card.getSiteName());
+        assertNull(card.getWorkstation());
+        assertNull(card.getMailStop());
+        assertNull(card.getCompanyAddress());
+    }
+
+    @Test
+    public void testProvisionRequestSerializesNewFields() throws Exception {
+        Models.ProvisionCardRequest request = Models.ProvisionCardRequest.builder()
+            .cardTemplateId("tmpl-1")
+            .fullName("John Doe")
+            .department("Engineering")
+            .location("San Francisco")
+            .siteName("HQ Building A")
+            .workstation("4F-207")
+            .mailStop("MS-401")
+            .companyAddress("123 Main St, San Francisco, CA 94105")
+            .organizationName("Acme Corp")
+            .build();
+
+        String json = client.objectMapper.writeValueAsString(request);
+
+        assertTrue(json.contains("\"department\":\"Engineering\""));
+        assertTrue(json.contains("\"location\":\"San Francisco\""));
+        assertTrue(json.contains("\"site_name\":\"HQ Building A\""));
+        assertTrue(json.contains("\"workstation\":\"4F-207\""));
+        assertTrue(json.contains("\"mail_stop\":\"MS-401\""));
+        assertTrue(json.contains("\"company_address\":\"123 Main St, San Francisco, CA 94105\""));
+        assertTrue(json.contains("\"organization_name\":\"Acme Corp\""));
+    }
+
+    @Test
+    public void testUpdateRequestSerializesNewFields() throws Exception {
+        Models.UpdateCardRequest request = Models.UpdateCardRequest.builder()
+            .cardId("card-1")
+            .department("Marketing")
+            .location("New York")
+            .siteName("NYC Office")
+            .workstation("2F-105")
+            .mailStop("MS-200")
+            .companyAddress("456 Broadway, New York, NY 10013")
+            .build();
+
+        String json = client.objectMapper.writeValueAsString(request);
+
+        assertTrue(json.contains("\"department\":\"Marketing\""));
+        assertTrue(json.contains("\"location\":\"New York\""));
+        assertTrue(json.contains("\"site_name\":\"NYC Office\""));
+        assertTrue(json.contains("\"workstation\":\"2F-105\""));
+        assertTrue(json.contains("\"mail_stop\":\"MS-200\""));
+        assertTrue(json.contains("\"company_address\":\"456 Broadway, New York, NY 10013\""));
+    }
+
+    // --- Console: Landing Pages ---
+
+    @Test
+    public void testListLandingPagesSendsGetToLandingPages() throws IOException, InterruptedException {
+        mockResponse("[{\"id\":\"lp-1\",\"name\":\"Office Pass\",\"kind\":\"universal\",\"password_protected\":false,\"logo_url\":\"https://example.com/logo.png\",\"created_at\":\"2026-01-01\"},{\"id\":\"lp-2\",\"name\":\"VIP Pass\",\"kind\":\"universal\",\"password_protected\":true}]");
+
+        java.util.List<Models.LandingPage> pages = client.console().listLandingPages();
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().endsWith("/console/landing-pages"), "Should GET /console/landing-pages");
+        assertEquals("GET", captured.method());
+        assertEquals(2, pages.size());
+        assertEquals("lp-1", pages.get(0).getId());
+        assertEquals("Office Pass", pages.get(0).getName());
+        assertEquals("universal", pages.get(0).getKind());
+        assertFalse(pages.get(0).isPasswordProtected());
+        assertEquals("https://example.com/logo.png", pages.get(0).getLogoUrl());
+        assertTrue(pages.get(1).isPasswordProtected());
+    }
+
+    @Test
+    public void testListLandingPagesEmpty() throws IOException, InterruptedException {
+        mockResponse("[]");
+
+        java.util.List<Models.LandingPage> pages = client.console().listLandingPages();
+
+        assertEquals(0, pages.size());
+    }
+
+    @Test
+    public void testCreateLandingPageSendsPostToLandingPages() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"lp-new\",\"name\":\"Miami Office\",\"kind\":\"universal\",\"password_protected\":false}");
+
+        Models.CreateLandingPageRequest request = Models.CreateLandingPageRequest.builder()
+            .name("Miami Office")
+            .kind("universal")
+            .additionalText("Welcome to the Miami Office")
+            .bgColor("#f1f5f9")
+            .allowImmediateDownload(true)
+            .build();
+
+        Models.LandingPage page = client.console().createLandingPage(request);
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().endsWith("/console/landing-pages"), "Should POST to /console/landing-pages");
+        assertEquals("POST", captured.method());
+        assertEquals("lp-new", page.getId());
+        assertEquals("Miami Office", page.getName());
+    }
+
+    @Test
+    public void testUpdateLandingPageSendsPatchToLandingPages() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"lp-1\",\"name\":\"Updated Page\",\"kind\":\"universal\",\"password_protected\":false}");
+
+        Models.UpdateLandingPageRequest request = Models.UpdateLandingPageRequest.builder()
+            .landingPageId("lp-1")
+            .name("Updated Page")
+            .additionalText("Updated text")
+            .bgColor("#e2e8f0")
+            .build();
+
+        Models.LandingPage page = client.console().updateLandingPage(request);
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/landing-pages/lp-1"), "Should PATCH /console/landing-pages/{id}");
+        assertEquals("PATCH", captured.method());
+        assertEquals("Updated Page", page.getName());
+    }
+
+    // --- Console: Credential Profiles ---
+
+    @Test
+    public void testListCredentialProfilesSendsGetToCredentialProfiles() throws IOException, InterruptedException {
+        mockResponse("[{\"id\":\"cp-1\",\"name\":\"Main Profile\",\"aid\":\"F0010203040506\",\"apple_id\":\"pass.com.example\",\"created_at\":\"2026-01-01\",\"card_storage\":\"2000\",\"keys\":[{\"label\":\"Master Key\",\"value\":\"AABBCCDD\",\"ex_id\":\"k-1\"}],\"files\":[{\"ex_id\":\"f-1\",\"communication_settings\":\"plain\",\"read_rights\":\"key0\",\"write_rights\":\"key0\",\"read_write_rights\":\"key0\",\"change_rights\":\"key0\"}]}]");
+
+        java.util.List<Models.CredentialProfile> profiles = client.console().credentialProfiles().list();
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().endsWith("/console/credential-profiles"), "Should GET /console/credential-profiles");
+        assertEquals("GET", captured.method());
+        assertEquals(1, profiles.size());
+        assertEquals("cp-1", profiles.get(0).getId());
+        assertEquals("Main Profile", profiles.get(0).getName());
+        assertEquals("F0010203040506", profiles.get(0).getAid());
+        assertEquals("pass.com.example", profiles.get(0).getAppleId());
+        assertEquals("2000", profiles.get(0).getCardStorage());
+        assertEquals(1, profiles.get(0).getKeys().size());
+        assertEquals("Master Key", profiles.get(0).getKeys().get(0).getLabel());
+        assertEquals(1, profiles.get(0).getFiles().size());
+        assertEquals("f-1", profiles.get(0).getFiles().get(0).getExId());
+    }
+
+    @Test
+    public void testListCredentialProfilesEmpty() throws IOException, InterruptedException {
+        mockResponse("[]");
+
+        java.util.List<Models.CredentialProfile> profiles = client.console().credentialProfiles().list();
+
+        assertEquals(0, profiles.size());
+    }
+
+    @Test
+    public void testCreateCredentialProfileSendsPostToCredentialProfiles() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"cp-new\",\"name\":\"New Profile\",\"aid\":\"F0010203040506\"}");
+
+        Models.CreateCredentialProfileRequest request = Models.CreateCredentialProfileRequest.builder()
+            .name("New Profile")
+            .appName("KEY-ID-main")
+            .keys(java.util.List.of(
+                new Models.KeyParam("your_32_char_hex_master_key_here"),
+                new Models.KeyParam("your_32_char_hex__read_key__here")
+            ))
+            .build();
+
+        Models.CredentialProfile profile = client.console().credentialProfiles().create(request);
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().endsWith("/console/credential-profiles"), "Should POST to /console/credential-profiles");
+        assertEquals("POST", captured.method());
+        assertEquals("cp-new", profile.getId());
+        assertEquals("New Profile", profile.getName());
+        assertEquals("F0010203040506", profile.getAid());
+    }
+
+    @Test
+    public void testCreateCredentialProfileSerializesKeys() throws Exception {
+        Models.CreateCredentialProfileRequest request = Models.CreateCredentialProfileRequest.builder()
+            .name("Test Profile")
+            .appName("KEY-ID-test")
+            .keys(java.util.List.of(
+                new Models.KeyParam("hex_key_1"),
+                new Models.KeyParam("hex_key_2")
+            ))
+            .build();
+
+        String json = client.objectMapper.writeValueAsString(request);
+
+        assertTrue(json.contains("\"app_name\":\"KEY-ID-test\""), "app_name should be serialized");
+        assertTrue(json.contains("\"hex_key_1\""), "key values should be serialized");
+        assertTrue(json.contains("\"hex_key_2\""), "key values should be serialized");
+    }
+
+    // --- Error handling ---
+
     @Test
     @SuppressWarnings("unchecked")
     public void testNon200ResponseThrowsException() throws IOException, InterruptedException {

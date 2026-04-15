@@ -14,7 +14,7 @@ Add the following dependency to your `pom.xml`:
 <dependency>
     <groupId>com.accessgrid</groupId>
     <artifactId>access-grid-sdk</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 
@@ -23,7 +23,7 @@ Add the following dependency to your `pom.xml`:
 Add to your `build.gradle`:
 
 ```groovy
-implementation 'com.accessgrid:access-grid-sdk:1.2.0'
+implementation 'com.accessgrid:access-grid-sdk:1.3.0'
 ```
 
 ## Quick Start
@@ -49,6 +49,12 @@ ProvisionCardRequest request = ProvisionCardRequest.builder()
     .email("employee@yourwebsite.com")
     .phoneNumber("+19547212241")
     .classification("full_time")
+    .department("Engineering")
+    .location("San Francisco")
+    .siteName("HQ Building A")
+    .workstation("4F-207")
+    .mailStop("MS-401")
+    .companyAddress("123 Main St, San Francisco, CA 94105")
     .startDate(ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT))
     .expirationDate("2026-04-01T00:00:00.000Z")
     .employeePhoto("[image_in_base64_encoded_format]")
@@ -87,6 +93,12 @@ UpdateCardRequest request = UpdateCardRequest.builder()
     .employeeId("987654321")
     .fullName("Updated Employee Name")
     .classification("contractor")
+    .department("Marketing")
+    .location("New York")
+    .siteName("NYC Office")
+    .workstation("2F-105")
+    .mailStop("MS-200")
+    .companyAddress("456 Broadway, New York, NY 10013")
     .expirationDate(ZonedDateTime.now().plusMonths(3).format(DateTimeFormatter.ISO_INSTANT))
     .employeePhoto("[image_in_base64_encoded_format]")
     .title("Senior Developer")
@@ -257,6 +269,70 @@ CompleteHIDOrgParams completeParams = CompleteHIDOrgParams.builder()
 HIDOrg result = client.console().hid().orgs().activate(completeParams);
 ```
 
+### Landing Pages
+
+```java
+// List all landing pages
+List<LandingPage> landingPages = client.console().listLandingPages();
+
+for (LandingPage page : landingPages) {
+    System.out.printf("ID: %s, Name: %s, Kind: %s%n",
+        page.getId(), page.getName(), page.getKind());
+    System.out.printf("  Password Protected: %s%n", page.isPasswordProtected());
+    if (page.getLogoUrl() != null)
+        System.out.printf("  Logo URL: %s%n", page.getLogoUrl());
+}
+
+// Create a landing page
+CreateLandingPageRequest createRequest = CreateLandingPageRequest.builder()
+    .name("Miami Office Access Pass")
+    .kind("universal")
+    .additionalText("Welcome to the Miami Office")
+    .bgColor("#f1f5f9")
+    .allowImmediateDownload(true)
+    .build();
+
+LandingPage landingPage = client.console().createLandingPage(createRequest);
+
+// Update a landing page
+UpdateLandingPageRequest updateRequest = UpdateLandingPageRequest.builder()
+    .landingPageId("0xlandingpage1d")
+    .name("Updated Miami Office Access Pass")
+    .additionalText("Welcome! Tap below to get your access pass.")
+    .bgColor("#e2e8f0")
+    .build();
+
+LandingPage updated = client.console().updateLandingPage(updateRequest);
+```
+
+### Credential Profiles
+
+```java
+// List all credential profiles
+List<CredentialProfile> profiles = client.console().credentialProfiles().list();
+
+for (CredentialProfile profile : profiles) {
+    System.out.printf("ID: %s, Name: %s, AID: %s%n",
+        profile.getId(),
+        profile.getName(),
+        profile.getAid());
+}
+
+// Create a credential profile
+CreateCredentialProfileRequest request = CreateCredentialProfileRequest.builder()
+    .name("Main Office Profile")
+    .appName("KEY-ID-main")
+    .keys(List.of(
+        new KeyParam("your_32_char_hex_master_key_here"),
+        new KeyParam("your_32_char_hex__read_key__here")
+    ))
+    .build();
+
+CredentialProfile profile = client.console().credentialProfiles().create(request);
+System.out.printf("Profile created: %s%n", profile.getId());
+System.out.printf("AID: %s%n", profile.getAid());
+```
+
 ## Error Handling
 
 ```java
@@ -292,4 +368,9 @@ try {
 | GET .../logs | Y |
 | GET /v1/console/ledger-items | Y |
 | POST /v1/console/ios-preflight | Y |
+| GET /v1/console/landing-pages | Y |
+| POST /v1/console/landing-pages | Y |
+| PATCH /v1/console/landing-pages/{id} | Y |
+| GET /v1/console/credential-profiles | Y |
+| POST /v1/console/credential-profiles | Y |
 | HID orgs (create/activate/list) | Y |
