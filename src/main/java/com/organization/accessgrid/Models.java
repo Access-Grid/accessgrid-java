@@ -658,4 +658,119 @@ public class Models {
         private String appName;
         private List<KeyParam> keys;
     }
+
+    // --- Pass Template Pairs ---
+
+    /**
+     * Lightweight template reference within a pass template pair.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PassTemplatePairInfo {
+        private String id;
+        @JsonProperty("ex_id")
+        private String exId;
+        private String name;
+        private String platform;
+    }
+
+    /**
+     * A paired iOS/Android pass template configuration.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PassTemplatePair {
+        private String id;
+        @JsonProperty("ex_id")
+        private String exId;
+        private String name;
+        @JsonProperty("created_at")
+        private String createdAt;
+        @JsonProperty("android_template")
+        private PassTemplatePairInfo androidTemplate;
+        @JsonProperty("ios_template")
+        private PassTemplatePairInfo iosTemplate;
+    }
+
+    /**
+     * Response wrapper for listing pass template pairs.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PassTemplatePairsResponse {
+        @JsonProperty("card_template_pairs")
+        private List<PassTemplatePair> passTemplatePairs;
+        private Pagination pagination;
+    }
+
+    /**
+     * Request model for creating a pass template pair.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreatePassTemplatePairRequest {
+        private String name;
+        @JsonProperty("apple_card_template_id")
+        private String appleCardTemplateId;
+        @JsonProperty("google_card_template_id")
+        private String googleCardTemplateId;
+    }
+
+    // --- Webhooks ---
+
+    /**
+     * Webhook response model.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Webhook {
+        private String id;
+        private String name;
+        private String url;
+        @JsonProperty("auth_method")
+        private String authMethod;
+        @JsonProperty("subscribed_events")
+        private List<String> subscribedEvents;
+        @JsonProperty("created_at")
+        private String createdAt;
+        @JsonProperty("private_key")
+        private String privateKey;
+        @JsonProperty("client_cert")
+        private String clientCert;
+        @JsonProperty("cert_expires_at")
+        private String certExpiresAt;
+    }
+
+    /**
+     * Response wrapper for listing webhooks.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WebhooksResponse {
+        private List<Webhook> webhooks;
+        private Pagination pagination;
+    }
+
+    /**
+     * Request model for creating a webhook.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateWebhookRequest {
+        private String name;
+        private String url;
+        @JsonProperty("auth_method")
+        private String authMethod;
+        @JsonProperty("subscribed_events")
+        private List<String> subscribedEvents;
+    }
 }

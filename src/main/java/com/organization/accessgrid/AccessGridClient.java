@@ -320,10 +320,37 @@ public class AccessGridClient {
         }
 
         /**
+         * List pass template pairs.
+         */
+        public java.util.List<Models.PassTemplatePair> listPassTemplatePairs() {
+            Models.PassTemplatePairsResponse response = client.getWithParams(
+                "/console/card-template-pairs", "", Models.PassTemplatePairsResponse.class
+            );
+            return response != null && response.getPassTemplatePairs() != null
+                ? response.getPassTemplatePairs()
+                : new java.util.ArrayList<>();
+        }
+
+        /**
+         * Create a pass template pair.
+         */
+        public Models.PassTemplatePair createPassTemplatePair(Models.CreatePassTemplatePairRequest request) {
+            String payload = client.serialize(request);
+            return client.post("/console/card-template-pairs", payload, Models.PassTemplatePair.class);
+        }
+
+        /**
          * Credential profile operations.
          */
         public CredentialProfilesApi credentialProfiles() {
             return new CredentialProfilesApi(client);
+        }
+
+        /**
+         * Webhook operations.
+         */
+        public WebhooksApi webhooks() {
+            return new WebhooksApi(client);
         }
 
         /**
@@ -420,6 +447,44 @@ public class AccessGridClient {
         public Models.CredentialProfile create(Models.CreateCredentialProfileRequest request) {
             String payload = client.serialize(request);
             return client.post("/console/credential-profiles", payload, Models.CredentialProfile.class);
+        }
+    }
+
+    /**
+     * API for Webhook operations.
+     */
+    public static class WebhooksApi {
+        private final AccessGridClient client;
+
+        WebhooksApi(AccessGridClient client) {
+            this.client = client;
+        }
+
+        /**
+         * List all webhooks.
+         */
+        public java.util.List<Models.Webhook> list() {
+            Models.WebhooksResponse response = client.getWithParams(
+                "/console/webhooks", "", Models.WebhooksResponse.class
+            );
+            return response != null && response.getWebhooks() != null
+                ? response.getWebhooks()
+                : new java.util.ArrayList<>();
+        }
+
+        /**
+         * Create a new webhook.
+         */
+        public Models.Webhook create(Models.CreateWebhookRequest request) {
+            String payload = client.serialize(request);
+            return client.post("/console/webhooks", payload, Models.Webhook.class);
+        }
+
+        /**
+         * Delete a webhook.
+         */
+        public void delete(String webhookId) {
+            client.delete("/console/webhooks/" + webhookId);
         }
     }
 
@@ -555,9 +620,10 @@ public class AccessGridClient {
     void delete(String path) {
         try {
             String signature = generateSignature("{}");
+            String encodedPayload = java.net.URLEncoder.encode("{}", StandardCharsets.UTF_8);
 
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + path))
+                .uri(URI.create(baseUrl + path + "?sig_payload=" + encodedPayload))
                 .header("X-ACCT-ID", accountId)
                 .header("X-PAYLOAD-SIG", signature)
                 .header("User-Agent", "accessgrid.java/" + VERSION)
