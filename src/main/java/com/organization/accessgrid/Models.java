@@ -46,8 +46,10 @@ public class Models {
         private String employeeId;
         @JsonProperty("tag_id")
         private String tagId;
-        @JsonProperty("allow_on_multiple_devices")
-        private boolean allowOnMultipleDevices;
+        @JsonProperty("card_number")
+        private String cardNumber;
+        @JsonProperty("site_code")
+        private String siteCode;
         @JsonProperty("full_name")
         private String fullName;
         private String email;
@@ -411,6 +413,24 @@ public class Models {
     }
 
     /**
+     * Response wrapper for listing access cards.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ListCardsResponse {
+        private List<Card> keys;
+        private int count;
+        @JsonProperty("total_count")
+        private int totalCount;
+        private int page;
+        @JsonProperty("per_page")
+        private int perPage;
+        @JsonProperty("total_pages")
+        private int totalPages;
+    }
+
+    /**
      * Response wrapper for ledger items.
      */
     @Data
@@ -446,7 +466,7 @@ public class Models {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class HIDOrg {
-        private int id;
+        private String id;
         private String name;
         private String slug;
         @JsonProperty("first_name")

@@ -71,6 +71,8 @@ public class AccessGridClient {
 
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
     }
 
     /**
@@ -138,9 +140,12 @@ public class AccessGridClient {
                 if (params.getState() != null)
                     appendParam(query, "state", params.getState());
             }
-            return java.util.Arrays.asList(
-                client.getWithParams("/key-cards", query.toString(), Models.Card[].class)
+            Models.ListCardsResponse response = client.getWithParams(
+                "/key-cards", query.toString(), Models.ListCardsResponse.class
             );
+            return response != null && response.getKeys() != null
+                ? response.getKeys()
+                : new java.util.ArrayList<>();
         }
 
         /**
@@ -502,11 +507,16 @@ public class AccessGridClient {
     <T> T getWithParams(String path, String queryString, Class<T> responseType) {
         try {
             String signature = generateSignature("{}");
-            String separator = queryString.isEmpty() ? "?" : queryString + "&";
-            String uri = baseUrl + path + "?" + queryString + (queryString.isEmpty() ? "" : "&") + "sig_payload=" + java.net.URLEncoder.encode("{}", StandardCharsets.UTF_8);
+            String encodedPayload = java.net.URLEncoder.encode("{}", StandardCharsets.UTF_8);
+            String uri;
+            if (queryString == null || queryString.isEmpty()) {
+                uri = baseUrl + path + "?sig_payload=" + encodedPayload;
+            } else {
+                uri = baseUrl + path + "?" + queryString + "&sig_payload=" + encodedPayload;
+            }
 
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + path + (queryString.isEmpty() ? "" : "?" + queryString)))
+                .uri(URI.create(uri))
                 .header("X-ACCT-ID", accountId)
                 .header("X-PAYLOAD-SIG", signature)
                 .header("User-Agent", "accessgrid.java/" + VERSION)
