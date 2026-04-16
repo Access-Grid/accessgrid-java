@@ -352,25 +352,32 @@ try {
 
 ## Feature Matrix
 
-| Feature | Supported |
-|---|:---:|
-| POST /v1/key-cards (issue) | Y |
-| GET /v1/key-cards/{id} | Y |
-| PATCH /v1/key-cards/{id} | Y |
-| GET /v1/key-cards (list) | Y |
-| POST .../suspend | Y |
-| POST .../resume | Y |
-| POST .../unlink | Y |
-| POST .../delete | Y |
-| POST /v1/console/card-templates | Y |
-| PUT /v1/console/card-templates/{id} | Y |
-| GET /v1/console/card-templates/{id} | Y |
-| GET .../logs | Y |
-| GET /v1/console/ledger-items | Y |
-| POST /v1/console/ios-preflight | Y |
-| GET /v1/console/landing-pages | Y |
-| POST /v1/console/landing-pages | Y |
-| PATCH /v1/console/landing-pages/{id} | Y |
-| GET /v1/console/credential-profiles | Y |
-| POST /v1/console/credential-profiles | Y |
-| HID orgs (create/activate/list) | Y |
+| Endpoint | Method | Supported |
+|---|---|:---:|
+| POST /v1/key-cards | `accessCards().provision()` | Y |
+| GET /v1/key-cards/{id} | `accessCards().get()` | Y |
+| PATCH /v1/key-cards/{id} | `accessCards().update()` | Y |
+| GET /v1/key-cards | `accessCards().list()` | Y |
+| POST /v1/key-cards/{id}/suspend | `accessCards().suspend()` | Y |
+| POST /v1/key-cards/{id}/resume | `accessCards().resume()` | Y |
+| POST /v1/key-cards/{id}/unlink | `accessCards().unlink()` | Y |
+| POST /v1/key-cards/{id}/delete | `accessCards().delete()` | Y |
+| POST /v1/console/card-templates | `console().createTemplate()` | Y |
+| PUT /v1/console/card-templates/{id} | `console().updateTemplate()` | Y |
+| GET /v1/console/card-templates/{id} | `console().readTemplate()` | Y |
+| GET /v1/console/card-templates/{id}/logs | `console().eventLog()` | Y |
+| GET /v1/console/card-template-pairs | `console().listPassTemplatePairs()` | Y |
+| POST /v1/console/card-template-pairs | `console().createPassTemplatePair()` | Y |
+| POST /v1/console/card-templates/{id}/ios_preflight | `console().iosPreflight()` | Y |
+| GET /v1/console/ledger-items | `console().ledgerItems()` | Y |
+| GET /v1/console/landing-pages | `console().listLandingPages()` | Y |
+| POST /v1/console/landing-pages | `console().createLandingPage()` | Y |
+| PATCH /v1/console/landing-pages/{id} | `console().updateLandingPage()` | Y |
+| GET /v1/console/credential-profiles | `console().credentialProfiles().list()` | Y |
+| POST /v1/console/credential-profiles | `console().credentialProfiles().create()` | Y |
+| GET /v1/console/webhooks | `console().webhooks().list()` | Y |
+| POST /v1/console/webhooks | `console().webhooks().create()` | Y |
+| DELETE /v1/console/webhooks/{id} | `console().webhooks().delete()` | Y |
+| POST /v1/console/hid/orgs | `console().hid().orgs().create()` | Y |
+| POST /v1/console/hid/orgs/activate | `console().hid().orgs().activate()` | Y |
+| GET /v1/console/hid/orgs | `console().hid().orgs().list()` | Y |
