@@ -145,7 +145,7 @@ public class AccessGridClientTest {
 
     @Test
     public void testListCardsSendsGetToKeyCards() throws IOException, InterruptedException {
-        mockResponse("[{\"id\":\"card-1\",\"state\":\"active\"},{\"id\":\"card-2\",\"state\":\"suspended\"}]");
+        mockResponse("{\"keys\":[{\"id\":\"card-1\",\"state\":\"active\"},{\"id\":\"card-2\",\"state\":\"suspended\"}]}");
 
         java.util.List<Models.Card> cards = client.accessCards().list();
 
@@ -158,7 +158,7 @@ public class AccessGridClientTest {
 
     @Test
     public void testListCardsWithFiltersSendsQueryParams() throws IOException, InterruptedException {
-        mockResponse("[{\"id\":\"card-1\",\"state\":\"active\"}]");
+        mockResponse("{\"keys\":[{\"id\":\"card-1\",\"state\":\"active\"}]}");
 
         Models.ListKeysParams params = Models.ListKeysParams.builder()
             .templateId("tmpl-1")
