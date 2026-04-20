@@ -2,3 +2,4 @@ target
 target/*
 scripts/
 .envrc
+.ds_store
