@@ -668,8 +668,8 @@ public class AccessGridClientTest {
         Models.LandingPage page = client.console().updateLandingPage(request);
 
         HttpRequest captured = captureRequest();
-        assertTrue(captured.uri().getPath().contains("/console/landing-pages/lp-1"), "Should PATCH /console/landing-pages/{id}");
-        assertEquals("PATCH", captured.method());
+        assertTrue(captured.uri().getPath().contains("/console/landing-pages/lp-1"), "Should PUT /console/landing-pages/{id}");
+        assertEquals("PUT", captured.method());
         assertEquals("Updated Page", page.getName());
     }
 
