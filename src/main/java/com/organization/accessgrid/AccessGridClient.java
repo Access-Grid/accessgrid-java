@@ -316,7 +316,7 @@ public class AccessGridClient {
          */
         public Models.LandingPage updateLandingPage(Models.UpdateLandingPageRequest request) {
             String payload = client.serialize(request);
-            return client.patch("/console/landing-pages/" + request.getLandingPageId(), payload, Models.LandingPage.class);
+            return client.put("/console/landing-pages/" + request.getLandingPageId(), payload, Models.LandingPage.class);
         }
 
         /**

@@ -372,7 +372,7 @@ try {
 | GET /v1/console/ledger-items | `console().ledgerItems()` | Y |
 | GET /v1/console/landing-pages | `console().listLandingPages()` | Y |
 | POST /v1/console/landing-pages | `console().createLandingPage()` | Y |
-| PATCH /v1/console/landing-pages/{id} | `console().updateLandingPage()` | Y |
+| PUT /v1/console/landing-pages/{id} | `console().updateLandingPage()` | Y |
 | GET /v1/console/credential-profiles | `console().credentialProfiles().list()` | Y |
 | POST /v1/console/credential-profiles | `console().credentialProfiles().create()` | Y |
 | GET /v1/console/webhooks | `console().webhooks().list()` | Y |
