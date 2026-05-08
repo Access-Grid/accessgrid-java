@@ -203,6 +203,15 @@ System.out.printf("Protocol: %s%n", template.getProtocol());
 System.out.printf("Multi-device: %b%n", template.isAllowOnMultipleDevices());
 ```
 
+### Publishing a Card Template
+
+```java
+PublishTemplateResponse result = client.console().publishTemplate("0xd3adb00b5");
+
+System.out.printf("Template ID: %s%n", result.getId());
+System.out.printf("Status: %s%n", result.getStatus());
+```
+
 ### Event Logs
 
 ```java
@@ -365,6 +374,7 @@ try {
 | POST /v1/console/card-templates | `console().createTemplate()` | Y |
 | PUT /v1/console/card-templates/{id} | `console().updateTemplate()` | Y |
 | GET /v1/console/card-templates/{id} | `console().readTemplate()` | Y |
+| POST /v1/console/card-templates/{id}/publish | `console().publishTemplate()` | Y |
 | GET /v1/console/card-templates/{id}/logs | `console().eventLog()` | Y |
 | GET /v1/console/card-template-pairs | `console().listPassTemplatePairs()` | Y |
 | POST /v1/console/card-template-pairs | `console().createPassTemplatePair()` | Y |

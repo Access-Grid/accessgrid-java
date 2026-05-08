@@ -306,6 +306,22 @@ public class AccessGridClientTest {
         assertTrue(template.isAllowOnMultipleDevices());
     }
 
+    // --- Console: Publish Template ---
+
+    @Test
+    public void testPublishTemplateSendsPostToPublishEndpoint() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"tmpl-1\",\"status\":\"in-review\"}");
+
+        Models.PublishTemplateResponse response = client.console().publishTemplate("tmpl-1");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/card-templates/tmpl-1/publish"),
+            "Should POST /console/card-templates/{id}/publish");
+        assertEquals("POST", captured.method());
+        assertEquals("tmpl-1", response.getId());
+        assertEquals("in-review", response.getStatus());
+    }
+
     // --- Console: Event Log ---
 
     @Test
