@@ -225,6 +225,19 @@ public class AccessGridClient {
         }
 
         /**
+         * Publish a card template. For Apple templates this transitions the
+         * template to "in-review"; for Android (Google) templates it becomes
+         * "ready" immediately.
+         */
+        public Models.PublishTemplateResponse publishTemplate(String templateId) {
+            return client.post(
+                "/console/card-templates/" + templateId + "/publish",
+                "",
+                Models.PublishTemplateResponse.class
+            );
+        }
+
+        /**
          * Get event logs for a card template.
          */
         public java.util.List<Models.Event> eventLog(String templateId, Models.EventLogFilters filters) {

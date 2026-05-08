@@ -529,6 +529,17 @@ public class Models {
     }
 
     /**
+     * Response from publishing a card template.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PublishTemplateResponse {
+        private String id;
+        private String status;
+    }
+
+    /**
      * Landing page response model.
      */
     @Data
