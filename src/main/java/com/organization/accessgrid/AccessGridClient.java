@@ -225,6 +225,47 @@ public class AccessGridClient {
         }
 
         /**
+         * Reveal the SmartTap private key for a card template.
+         *
+         * <p>The SDK generates a P-256 keypair locally, submits the public key to
+         * the server, and decrypts the returned envelope (ECDH-ES + HKDF-SHA256
+         * + AES-256-GCM) so the private key never leaves this host in
+         * plaintext. Each call must use a fresh public key — the server rejects
+         * reuse.
+         */
+        public Models.RevealTemplatePrivateKeyResponse revealTemplatePrivateKey(String templateId) {
+            if (templateId == null || templateId.isEmpty())
+                throw new AccessGridException("templateId is required");
+
+            SmartTapRevealCrypto.GeneratedKeyPair generated = SmartTapRevealCrypto.generateP256KeyPair();
+            String body = client.serialize(java.util.Map.of("client_public_key", generated.publicKeyPem));
+
+            Models.SmartTapRevealRawResponse raw = client.post(
+                "/console/card-templates/" + templateId + "/smart-tap/reveal",
+                body,
+                Models.SmartTapRevealRawResponse.class
+            );
+
+            if (raw == null || raw.getEncryptedPrivateKey() == null)
+                throw new AccessGridException("Server response missing encrypted_private_key envelope");
+
+            Models.SmartTapRevealEnvelope envelope = raw.getEncryptedPrivateKey();
+            byte[] iv = java.util.Base64.getDecoder().decode(envelope.getIv());
+            byte[] ciphertext = java.util.Base64.getDecoder().decode(envelope.getCiphertext());
+            byte[] tag = java.util.Base64.getDecoder().decode(envelope.getTag());
+
+            byte[] plaintext = SmartTapRevealCrypto.decryptEnvelope(
+                generated.keyPair, envelope.getEphemeralPublicKey(), iv, ciphertext, tag);
+
+            return new Models.RevealTemplatePrivateKeyResponse(
+                raw.getKeyVersion(),
+                raw.getCollectorId(),
+                raw.getFingerprint(),
+                new String(plaintext, java.nio.charset.StandardCharsets.UTF_8)
+            );
+        }
+
+        /**
          * Get event logs for a card template.
          */
         public java.util.List<Models.Event> eventLog(String templateId, Models.EventLogFilters filters) {

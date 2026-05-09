@@ -529,6 +529,54 @@ public class Models {
     }
 
     /**
+     * Encrypted envelope returned by POST /v1/console/card-templates/{id}/smart-tap/reveal.
+     * Used internally during decryption; not surfaced to SDK callers.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class SmartTapRevealEnvelope {
+        private String alg;
+        @JsonProperty("ephemeral_public_key")
+        private String ephemeralPublicKey;
+        private String iv;
+        private String ciphertext;
+        private String tag;
+    }
+
+    /**
+     * Raw response from the SmartTap reveal endpoint.
+     * Internal: callers receive {@link RevealTemplatePrivateKeyResponse} instead.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class SmartTapRevealRawResponse {
+        @JsonProperty("key_version")
+        private String keyVersion;
+        @JsonProperty("collector_id")
+        private String collectorId;
+        private String fingerprint;
+        @JsonProperty("encrypted_private_key")
+        private SmartTapRevealEnvelope encryptedPrivateKey;
+    }
+
+    /**
+     * Result of a SmartTap private key reveal. The private key has already been
+     * decrypted client-side; the encryption envelope is not exposed.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RevealTemplatePrivateKeyResponse {
+        private String keyVersion;
+        private String collectorId;
+        private String fingerprint;
+        /** PEM-encoded private key. Sensitive — store in your reader/collector key vault. */
+        private String privateKey;
+    }
+
+    /**
      * Landing page response model.
      */
     @Data

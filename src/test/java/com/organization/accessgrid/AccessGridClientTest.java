@@ -306,6 +306,174 @@ public class AccessGridClientTest {
         assertTrue(template.isAllowOnMultipleDevices());
     }
 
+    // --- Console: Reveal Smart Tap Private Key ---
+
+    @Test
+    public void testRevealTemplatePrivateKeyDecryptsServerEnvelope() throws Exception {
+        final String plaintextPem =
+            "-----BEGIN EC PRIVATE KEY-----\n" +
+            "MHcCAQEEIBmlx2KqB7+RLMrHWLMm6hh3JwFrL2ZxZTLkW1yX8OabAoGCCqGSM49\n" +
+            "AwEHoUQDQgAEs5bJrjEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXA\n" +
+            "MPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEEXAMPLEE=\n" +
+            "-----END EC PRIVATE KEY-----\n";
+
+        // Capture the SDK's outgoing client_public_key, then encrypt against it.
+        @SuppressWarnings("unchecked")
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(200);
+        when(mockSender.send(any(HttpRequest.class))).thenAnswer(invocation -> {
+            HttpRequest sent = invocation.getArgument(0);
+            String requestBody = bodyOf(sent);
+            String clientPublicKeyPem = client.objectMapper.readTree(requestBody)
+                .get("client_public_key").asText();
+
+            FakeServerEnvelope envelope = simulateServerEncrypt(plaintextPem, clientPublicKeyPem);
+            String responseJson = client.objectMapper.writeValueAsString(java.util.Map.of(
+                "key_version", "tmpl-42",
+                "collector_id", "12345678",
+                "fingerprint", "a".repeat(64),
+                "encrypted_private_key", java.util.Map.of(
+                    "alg", "ECDH-ES+A256GCM",
+                    "ephemeral_public_key", envelope.ephemeralPublicKeyPem,
+                    "iv", java.util.Base64.getEncoder().encodeToString(envelope.iv),
+                    "ciphertext", java.util.Base64.getEncoder().encodeToString(envelope.ciphertext),
+                    "tag", java.util.Base64.getEncoder().encodeToString(envelope.tag)
+                )
+            ));
+            when(response.body()).thenReturn(responseJson);
+            return response;
+        });
+
+        Models.RevealTemplatePrivateKeyResponse result =
+            client.console().revealTemplatePrivateKey("tmpl-42");
+
+        assertEquals("tmpl-42", result.getKeyVersion());
+        assertEquals("12345678", result.getCollectorId());
+        assertEquals(64, result.getFingerprint().length());
+        assertEquals(plaintextPem, result.getPrivateKey());
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/card-templates/tmpl-42/smart-tap/reveal"),
+            "Should POST to smart-tap/reveal");
+        assertEquals("POST", captured.method());
+    }
+
+    @Test
+    public void testRevealTemplatePrivateKeyRejectsEmptyTemplateId() {
+        assertThrows(AccessGridClient.AccessGridException.class,
+            () -> client.console().revealTemplatePrivateKey(""));
+    }
+
+    private static String bodyOf(HttpRequest request) {
+        return request.bodyPublisher()
+            .map(p -> {
+                java.util.concurrent.Flow.Subscriber<? super java.nio.ByteBuffer> noop;
+                java.util.List<java.nio.ByteBuffer> received = new java.util.ArrayList<>();
+                java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+                p.subscribe(new java.util.concurrent.Flow.Subscriber<>() {
+                    public void onSubscribe(java.util.concurrent.Flow.Subscription s) { s.request(Long.MAX_VALUE); }
+                    public void onNext(java.nio.ByteBuffer b) { received.add(b); }
+                    public void onError(Throwable t) { done.countDown(); }
+                    public void onComplete() { done.countDown(); }
+                });
+                try { done.await(); } catch (InterruptedException ignored) {}
+                int total = received.stream().mapToInt(java.nio.ByteBuffer::remaining).sum();
+                byte[] all = new byte[total];
+                int offset = 0;
+                for (java.nio.ByteBuffer buf : received) {
+                    int n = buf.remaining();
+                    buf.get(all, offset, n);
+                    offset += n;
+                }
+                return new String(all, java.nio.charset.StandardCharsets.UTF_8);
+            })
+            .orElse("");
+    }
+
+    private static class FakeServerEnvelope {
+        String ephemeralPublicKeyPem;
+        byte[] iv;
+        byte[] ciphertext;
+        byte[] tag;
+    }
+
+    // Mirrors rails' SmartTap::RevealEncryption.encrypt using BouncyCastle so the
+    // test exercises the SDK's full ECDH/HKDF/AES-GCM round-trip.
+    private static FakeServerEnvelope simulateServerEncrypt(String plaintextPem, String clientPublicKeyPem) throws Exception {
+        org.bouncycastle.asn1.x9.X9ECParameters curve =
+            org.bouncycastle.asn1.x9.ECNamedCurveTable.getByName("P-256");
+        org.bouncycastle.crypto.params.ECDomainParameters domain =
+            new org.bouncycastle.crypto.params.ECDomainParameters(
+                curve.getCurve(), curve.getG(), curve.getN(), curve.getH(), curve.getSeed());
+
+        org.bouncycastle.crypto.generators.ECKeyPairGenerator gen =
+            new org.bouncycastle.crypto.generators.ECKeyPairGenerator();
+        gen.init(new org.bouncycastle.crypto.params.ECKeyGenerationParameters(
+            domain, new java.security.SecureRandom()));
+        org.bouncycastle.crypto.AsymmetricCipherKeyPair ephemeral = gen.generateKeyPair();
+
+        org.bouncycastle.crypto.params.ECPublicKeyParameters clientPub;
+        try (org.bouncycastle.openssl.PEMParser parser =
+                new org.bouncycastle.openssl.PEMParser(new java.io.StringReader(clientPublicKeyPem))) {
+            Object o = parser.readObject();
+            clientPub = (org.bouncycastle.crypto.params.ECPublicKeyParameters)
+                org.bouncycastle.crypto.util.PublicKeyFactory.createKey(
+                    (org.bouncycastle.asn1.x509.SubjectPublicKeyInfo) o);
+        }
+
+        org.bouncycastle.crypto.agreement.ECDHBasicAgreement agreement =
+            new org.bouncycastle.crypto.agreement.ECDHBasicAgreement();
+        agreement.init(ephemeral.getPrivate());
+        java.math.BigInteger sharedBig = agreement.calculateAgreement(clientPub);
+        byte[] unsigned = sharedBig.toByteArray();
+        byte[] sharedSecret = new byte[32];
+        if (unsigned.length == 33 && unsigned[0] == 0) {
+            System.arraycopy(unsigned, 1, sharedSecret, 0, 32);
+        } else {
+            System.arraycopy(unsigned, 0, sharedSecret, 32 - unsigned.length, unsigned.length);
+        }
+
+        org.bouncycastle.crypto.generators.HKDFBytesGenerator hkdf =
+            new org.bouncycastle.crypto.generators.HKDFBytesGenerator(
+                new org.bouncycastle.crypto.digests.SHA256Digest());
+        hkdf.init(new org.bouncycastle.crypto.params.HKDFParameters(
+            sharedSecret, new byte[0],
+            "accessgrid-smart-tap-reveal-v1".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        byte[] aesKey = new byte[32];
+        hkdf.generateBytes(aesKey, 0, aesKey.length);
+
+        byte[] iv = new byte[12];
+        new java.security.SecureRandom().nextBytes(iv);
+        org.bouncycastle.crypto.modes.GCMBlockCipher gcm =
+            new org.bouncycastle.crypto.modes.GCMBlockCipher(
+                new org.bouncycastle.crypto.engines.AESEngine());
+        gcm.init(true, new org.bouncycastle.crypto.params.AEADParameters(
+            new org.bouncycastle.crypto.params.KeyParameter(aesKey),
+            128, iv, new byte[0]));
+        byte[] plaintextBytes = plaintextPem.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] combined = new byte[gcm.getOutputSize(plaintextBytes.length)];
+        int written = gcm.processBytes(plaintextBytes, 0, plaintextBytes.length, combined, 0);
+        written += gcm.doFinal(combined, written);
+        byte[] ciphertext = new byte[combined.length - 16];
+        byte[] tag = new byte[16];
+        System.arraycopy(combined, 0, ciphertext, 0, ciphertext.length);
+        System.arraycopy(combined, ciphertext.length, tag, 0, 16);
+
+        org.bouncycastle.asn1.x509.SubjectPublicKeyInfo spki =
+            org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(ephemeral.getPublic());
+        java.io.StringWriter sw = new java.io.StringWriter();
+        try (org.bouncycastle.openssl.jcajce.JcaPEMWriter w = new org.bouncycastle.openssl.jcajce.JcaPEMWriter(sw)) {
+            w.writeObject(spki);
+        }
+
+        FakeServerEnvelope env = new FakeServerEnvelope();
+        env.ephemeralPublicKeyPem = sw.toString();
+        env.iv = iv;
+        env.ciphertext = ciphertext;
+        env.tag = tag;
+        return env;
+    }
+
     // --- Console: Event Log ---
 
     @Test
