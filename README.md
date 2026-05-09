@@ -212,6 +212,19 @@ System.out.printf("Template ID: %s%n", result.getId());
 System.out.printf("Status: %s%n", result.getStatus());
 ```
 
+### Revealing a SmartTap Private Key
+
+```java
+// SDK generates a P-256 keypair locally, submits the public key, and
+// decrypts the server's response. The private key never leaves the host.
+RevealTemplatePrivateKeyResponse result = client.console().revealTemplatePrivateKey("0xd3adb00b5");
+
+System.out.printf("Key version: %s%n", result.getKeyVersion());
+System.out.printf("Collector ID: %s%n", result.getCollectorId());
+System.out.printf("Fingerprint: %s%n", result.getFingerprint());
+System.out.println(result.getPrivateKey()); // PEM — store in your reader/collector key vault
+```
+
 ### Event Logs
 
 ```java
@@ -375,6 +388,7 @@ try {
 | PUT /v1/console/card-templates/{id} | `console().updateTemplate()` | Y |
 | GET /v1/console/card-templates/{id} | `console().readTemplate()` | Y |
 | POST /v1/console/card-templates/{id}/publish | `console().publishTemplate()` | Y |
+| POST /v1/console/card-templates/{id}/smart-tap/reveal | `console().revealTemplatePrivateKey()` | Y |
 | GET /v1/console/card-templates/{id}/logs | `console().eventLog()` | Y |
 | GET /v1/console/card-template-pairs | `console().listPassTemplatePairs()` | Y |
 | POST /v1/console/card-template-pairs | `console().createPassTemplatePair()` | Y |
