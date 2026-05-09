@@ -42,6 +42,7 @@
         <!-- Dependency versions -->
         <jackson.version>2.15.2</jackson.version>
         <lombok.version>1.18.44</lombok.version>
+        <bouncycastle.version>1.78.1</bouncycastle.version>
     </properties>
 
     <dependencies>
@@ -70,6 +71,18 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.32</version>
+        </dependency>
+
+        <!-- BouncyCastle for SmartTap reveal crypto (ECDH-ES + HKDF-SHA256 + AES-GCM, PEM I/O) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
         </dependency>
 
         <!-- Testing -->

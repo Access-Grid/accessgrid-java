@@ -203,6 +203,28 @@ System.out.printf("Protocol: %s%n", template.getProtocol());
 System.out.printf("Multi-device: %b%n", template.isAllowOnMultipleDevices());
 ```
 
+### Publishing a Card Template
+
+```java
+PublishTemplateResponse result = client.console().publishTemplate("0xd3adb00b5");
+
+System.out.printf("Template ID: %s%n", result.getId());
+System.out.printf("Status: %s%n", result.getStatus());
+```
+
+### Revealing a SmartTap Private Key
+
+```java
+// SDK generates a P-256 keypair locally, submits the public key, and
+// decrypts the server's response. The private key never leaves the host.
+RevealTemplatePrivateKeyResponse result = client.console().revealTemplatePrivateKey("0xd3adb00b5");
+
+System.out.printf("Key version: %s%n", result.getKeyVersion());
+System.out.printf("Collector ID: %s%n", result.getCollectorId());
+System.out.printf("Fingerprint: %s%n", result.getFingerprint());
+System.out.println(result.getPrivateKey()); // PEM — store in your reader/collector key vault
+```
+
 ### Event Logs
 
 ```java
@@ -365,6 +387,8 @@ try {
 | POST /v1/console/card-templates | `console().createTemplate()` | Y |
 | PUT /v1/console/card-templates/{id} | `console().updateTemplate()` | Y |
 | GET /v1/console/card-templates/{id} | `console().readTemplate()` | Y |
+| POST /v1/console/card-templates/{id}/publish | `console().publishTemplate()` | Y |
+| POST /v1/console/card-templates/{id}/smart-tap/reveal | `console().revealTemplatePrivateKey()` | Y |
 | GET /v1/console/card-templates/{id}/logs | `console().eventLog()` | Y |
 | GET /v1/console/card-template-pairs | `console().listPassTemplatePairs()` | Y |
 | POST /v1/console/card-template-pairs | `console().createPassTemplatePair()` | Y |
@@ -372,7 +396,7 @@ try {
 | GET /v1/console/ledger-items | `console().ledgerItems()` | Y |
 | GET /v1/console/landing-pages | `console().listLandingPages()` | Y |
 | POST /v1/console/landing-pages | `console().createLandingPage()` | Y |
-| PATCH /v1/console/landing-pages/{id} | `console().updateLandingPage()` | Y |
+| PUT /v1/console/landing-pages/{id} | `console().updateLandingPage()` | Y |
 | GET /v1/console/credential-profiles | `console().credentialProfiles().list()` | Y |
 | POST /v1/console/credential-profiles | `console().credentialProfiles().create()` | Y |
 | GET /v1/console/webhooks | `console().webhooks().list()` | Y |
