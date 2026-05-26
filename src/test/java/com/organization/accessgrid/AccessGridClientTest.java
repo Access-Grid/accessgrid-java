@@ -839,7 +839,7 @@ public class AccessGridClientTest {
     }
 
     @Test
-    public void testUpdateLandingPageSendsPatchToLandingPages() throws IOException, InterruptedException {
+    public void testUpdateLandingPageSendsPutToLandingPages() throws IOException, InterruptedException {
         mockResponse("{\"id\":\"lp-1\",\"name\":\"Updated Page\",\"kind\":\"universal\",\"password_protected\":false}");
 
         Models.UpdateLandingPageRequest request = Models.UpdateLandingPageRequest.builder()
