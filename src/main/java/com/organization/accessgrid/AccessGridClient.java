@@ -22,7 +22,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  */
 public class AccessGridClient {
     private static final String DEFAULT_BASE_URL = "https://api.accessgrid.com/v1";
-    private static final String VERSION = "1.3.0";
+    private static final String VERSION = "1.4.1";
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
 
     private final String accountId;
@@ -77,6 +77,8 @@ public class AccessGridClient {
 
     /**
      * Get the account ID.
+     *
+     * @return the AccessGrid account identifier this client was constructed with
      */
     public String getAccountId() {
         return this.accountId;
@@ -84,6 +86,8 @@ public class AccessGridClient {
 
     /**
      * Access Cards API operations.
+     *
+     * @return an {@link AccessCardsApi} for issuing, listing, and managing access cards
      */
     public AccessCardsApi accessCards() {
         return new AccessCardsApi(this);
@@ -91,6 +95,8 @@ public class AccessGridClient {
 
     /**
      * Console Management API operations.
+     *
+     * @return a {@link ConsoleApi} for card templates, landing pages, webhooks, HID, and billing
      */
     public ConsoleApi console() {
         return new ConsoleApi(this);
@@ -108,6 +114,9 @@ public class AccessGridClient {
 
         /**
          * Provision a new access card.
+         *
+         * @param request issuance parameters (template id, employee fields, expiration, etc.)
+         * @return the newly issued Card with server-assigned id, state, and install_url
          */
         public Models.Card provision(Models.ProvisionCardRequest request) {
             String payload = client.serialize(request);
@@ -116,6 +125,9 @@ public class AccessGridClient {
 
         /**
          * Get details about a specific access card.
+         *
+         * @param cardId the access pass ex_id
+         * @return the Card record, including current state and metadata
          */
         public Models.Card get(String cardId) {
             return client.get("/key-cards/" + cardId, cardId, Models.Card.class);
@@ -123,6 +135,9 @@ public class AccessGridClient {
 
         /**
          * Update an existing access card.
+         *
+         * @param request update parameters; the card id is read from {@code request.getCardId()}
+         * @return the updated Card
          */
         public Models.Card update(Models.UpdateCardRequest request) {
             String payload = client.serialize(request);
@@ -131,6 +146,9 @@ public class AccessGridClient {
 
         /**
          * List access cards with optional filters.
+         *
+         * @param params optional filters (template_id, state); may be null for no filters
+         * @return matching cards; empty list if none match
          */
         public java.util.List<Models.Card> list(Models.ListKeysParams params) {
             StringBuilder query = new StringBuilder();
@@ -150,6 +168,8 @@ public class AccessGridClient {
 
         /**
          * List access cards without filters.
+         *
+         * @return all cards on the account
          */
         public java.util.List<Models.Card> list() {
             return list(null);
@@ -157,6 +177,8 @@ public class AccessGridClient {
 
         /**
          * Suspend an access card.
+         *
+         * @param cardId the access pass ex_id to suspend
          */
         public void suspend(String cardId) {
             client.postEmpty("/key-cards/" + cardId + "/suspend", cardId);
@@ -164,6 +186,8 @@ public class AccessGridClient {
 
         /**
          * Resume a suspended access card.
+         *
+         * @param cardId the access pass ex_id to resume
          */
         public void resume(String cardId) {
             client.postEmpty("/key-cards/" + cardId + "/resume", cardId);
@@ -171,6 +195,8 @@ public class AccessGridClient {
 
         /**
          * Unlink an access card from its device.
+         *
+         * @param cardId the access pass ex_id to unlink
          */
         public void unlink(String cardId) {
             client.postEmpty("/key-cards/" + cardId + "/unlink", cardId);
@@ -178,6 +204,8 @@ public class AccessGridClient {
 
         /**
          * Delete an access card.
+         *
+         * @param cardId the access pass ex_id to delete
          */
         public void delete(String cardId) {
             client.postEmpty("/key-cards/" + cardId + "/delete", cardId);
@@ -203,6 +231,9 @@ public class AccessGridClient {
 
         /**
          * Create a new card template.
+         *
+         * @param request template configuration (name, platform, use_case, protocol, styling, etc.)
+         * @return the created Template with server-assigned id
          */
         public Models.Template createTemplate(Models.CreateTemplateRequest request) {
             String payload = client.serialize(request);
@@ -211,6 +242,9 @@ public class AccessGridClient {
 
         /**
          * Update an existing card template.
+         *
+         * @param request fields to update; the template id is read from {@code request.getCardTemplateId()}
+         * @return the updated Template
          */
         public Models.Template updateTemplate(Models.UpdateTemplateRequest request) {
             String payload = client.serialize(request);
@@ -219,6 +253,9 @@ public class AccessGridClient {
 
         /**
          * Read a card template by ID.
+         *
+         * @param templateId the card template ex_id
+         * @return the full Template, including styling and association data
          */
         public Models.Template readTemplate(String templateId) {
             return client.get("/console/card-templates/" + templateId, templateId, Models.Template.class);
@@ -228,6 +265,9 @@ public class AccessGridClient {
          * Publish a card template. For Apple templates this transitions the
          * template to "in-review"; for Android (Google) templates it becomes
          * "ready" immediately.
+         *
+         * @param templateId the card template ex_id to publish
+         * @return the template id and resulting status ("publishing", "in-review", or "ready")
          */
         public Models.PublishTemplateResponse publishTemplate(String templateId) {
             return client.post(
@@ -245,6 +285,9 @@ public class AccessGridClient {
          * + AES-256-GCM) so the private key never leaves this host in
          * plaintext. Each call must use a fresh public key — the server rejects
          * reuse.
+         *
+         * @param templateId the card template ex_id (must be a published Google SmartTap template)
+         * @return the decrypted SmartTap private key PEM plus key version, collector id, and pubkey fingerprint
          */
         public Models.RevealTemplatePrivateKeyResponse revealTemplatePrivateKey(String templateId) {
             if (templateId == null || templateId.isEmpty())
@@ -280,6 +323,10 @@ public class AccessGridClient {
 
         /**
          * Get event logs for a card template.
+         *
+         * @param templateId the card template ex_id
+         * @param filters    optional filters (device, start_date, end_date, event_type); may be null
+         * @return matching events; empty list if none
          */
         public java.util.List<Models.Event> eventLog(String templateId, Models.EventLogFilters filters) {
             StringBuilder query = new StringBuilder();
@@ -305,6 +352,9 @@ public class AccessGridClient {
 
         /**
          * Get event logs for a card template without filters.
+         *
+         * @param templateId the card template ex_id
+         * @return all events for the template
          */
         public java.util.List<Models.Event> eventLog(String templateId) {
             return eventLog(templateId, null);
@@ -312,6 +362,9 @@ public class AccessGridClient {
 
         /**
          * Get ledger/billing items.
+         *
+         * @param params optional pagination + date filters (page, per_page, start_date, end_date); may be null
+         * @return the matching ledger items with pagination metadata
          */
         public Models.LedgerItemsResult ledgerItems(Models.LedgerItemsParams params) {
             StringBuilder query = new StringBuilder();
@@ -335,6 +388,8 @@ public class AccessGridClient {
 
         /**
          * Get ledger/billing items without filters.
+         *
+         * @return the first page of ledger items at the server's default page size
          */
         public Models.LedgerItemsResult ledgerItems() {
             return ledgerItems(null);
@@ -342,6 +397,10 @@ public class AccessGridClient {
 
         /**
          * iOS In-App Provisioning preflight.
+         *
+         * @param cardTemplateId  the card template ex_id
+         * @param accessPassExId  the access pass ex_id being provisioned
+         * @return the identifiers required to drive the Apple Wallet In-App Provisioning flow
          */
         public Models.IosPreflightResponse iosPreflight(String cardTemplateId, String accessPassExId) {
             String payload = client.serialize(java.util.Map.of("access_pass_ex_id", accessPassExId));
@@ -350,6 +409,8 @@ public class AccessGridClient {
 
         /**
          * List all landing pages.
+         *
+         * @return every landing page on the account
          */
         public java.util.List<Models.LandingPage> listLandingPages() {
             return java.util.Arrays.asList(
@@ -359,6 +420,9 @@ public class AccessGridClient {
 
         /**
          * Create a new landing page.
+         *
+         * @param request landing-page configuration (name, kind, password-protection, styling, etc.)
+         * @return the created LandingPage with server-assigned ex_id
          */
         public Models.LandingPage createLandingPage(Models.CreateLandingPageRequest request) {
             String payload = client.serialize(request);
@@ -367,6 +431,9 @@ public class AccessGridClient {
 
         /**
          * Update an existing landing page.
+         *
+         * @param request fields to update; the landing page id is read from {@code request.getLandingPageId()}
+         * @return the updated LandingPage
          */
         public Models.LandingPage updateLandingPage(Models.UpdateLandingPageRequest request) {
             String payload = client.serialize(request);
@@ -375,6 +442,8 @@ public class AccessGridClient {
 
         /**
          * List pass template pairs.
+         *
+         * @return every pass template pair on the account
          */
         public java.util.List<Models.PassTemplatePair> listPassTemplatePairs() {
             Models.PassTemplatePairsResponse response = client.getWithParams(
@@ -387,6 +456,9 @@ public class AccessGridClient {
 
         /**
          * Create a pass template pair.
+         *
+         * @param request the iOS + Android template ids to pair (both must be published and use the same protocol)
+         * @return the created PassTemplatePair
          */
         public Models.PassTemplatePair createPassTemplatePair(Models.CreatePassTemplatePairRequest request) {
             String payload = client.serialize(request);
@@ -395,6 +467,8 @@ public class AccessGridClient {
 
         /**
          * Credential profile operations.
+         *
+         * @return a {@link CredentialProfilesApi} for listing and creating credential profiles
          */
         public CredentialProfilesApi credentialProfiles() {
             return new CredentialProfilesApi(client);
@@ -402,6 +476,8 @@ public class AccessGridClient {
 
         /**
          * Webhook operations.
+         *
+         * @return a {@link WebhooksApi} for listing, creating, and deleting webhook subscriptions
          */
         public WebhooksApi webhooks() {
             return new WebhooksApi(client);
@@ -409,6 +485,8 @@ public class AccessGridClient {
 
         /**
          * HID-related services.
+         *
+         * @return an {@link HIDApi} entry point for HID Origo organization operations
          */
         public HIDApi hid() {
             return new HIDApi(client);
@@ -434,6 +512,8 @@ public class AccessGridClient {
 
         /**
          * HID Organizations API.
+         *
+         * @return a {@link HIDOrgsApi} for creating, listing, and activating HID organizations
          */
         public HIDOrgsApi orgs() {
             return new HIDOrgsApi(client);
@@ -452,6 +532,9 @@ public class AccessGridClient {
 
         /**
          * Create a new HID organization.
+         *
+         * @param params organization creation parameters (name, contact, address)
+         * @return the created HIDOrg; check {@code status} for current state
          */
         public Models.HIDOrg create(Models.CreateHIDOrgParams params) {
             String payload = client.serialize(params);
@@ -460,6 +543,8 @@ public class AccessGridClient {
 
         /**
          * List all HID organizations.
+         *
+         * @return every HID organization on the account
          */
         public java.util.List<Models.HIDOrg> list() {
             return java.util.Arrays.asList(
@@ -469,6 +554,9 @@ public class AccessGridClient {
 
         /**
          * Complete HID org registration with credentials.
+         *
+         * @param params activation parameters (org slug + the credentials returned by HID)
+         * @return the activated HIDOrg
          */
         public Models.HIDOrg activate(Models.CompleteHIDOrgParams params) {
             String payload = client.serialize(params);
@@ -488,6 +576,8 @@ public class AccessGridClient {
 
         /**
          * List all credential profiles.
+         *
+         * @return every credential profile on the account
          */
         public java.util.List<Models.CredentialProfile> list() {
             return java.util.Arrays.asList(
@@ -497,6 +587,9 @@ public class AccessGridClient {
 
         /**
          * Create a new credential profile.
+         *
+         * @param request credential profile configuration (name, kind, bit format, key diversification, etc.)
+         * @return the created CredentialProfile with server-assigned ex_id
          */
         public Models.CredentialProfile create(Models.CreateCredentialProfileRequest request) {
             String payload = client.serialize(request);
@@ -516,6 +609,8 @@ public class AccessGridClient {
 
         /**
          * List all webhooks.
+         *
+         * @return every webhook subscription on the account
          */
         public java.util.List<Models.Webhook> list() {
             Models.WebhooksResponse response = client.getWithParams(
@@ -528,6 +623,9 @@ public class AccessGridClient {
 
         /**
          * Create a new webhook.
+         *
+         * @param request webhook configuration (URL, auth_method, subscribed_events)
+         * @return the created Webhook; on bearer_token auth the {@code privateKey} is only present here
          */
         public Models.Webhook create(Models.CreateWebhookRequest request) {
             String payload = client.serialize(request);
@@ -536,6 +634,8 @@ public class AccessGridClient {
 
         /**
          * Delete a webhook.
+         *
+         * @param webhookId the webhook id to delete
          */
         public void delete(String webhookId) {
             client.delete("/console/webhooks/" + webhookId);
