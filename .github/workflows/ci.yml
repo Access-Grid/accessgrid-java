@@ -25,3 +25,18 @@ jobs:
 
       - name: Run tests
         run: ./mvnw -B test
+
+  javadoc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 11
+          cache: maven
+
+      - name: Verify Javadoc
+        run: ./mvnw -B javadoc:jar
