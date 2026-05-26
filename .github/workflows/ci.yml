@@ -10,6 +10,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Opt in to Node 24 ahead of GitHub's 2026-06-02 forced upgrade. Both
+  # actions/checkout@v4 and actions/setup-java@v4 are already the latest
+  # major versions and ship Node 20 binaries; this env var lets the runner
+  # execute them under Node 24 today.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   test:
     runs-on: ubuntu-latest
