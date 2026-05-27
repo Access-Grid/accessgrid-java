@@ -380,6 +380,85 @@ public class AccessGridClientTest {
             () -> client.console().revealTemplatePrivateKey(""));
     }
 
+    @Test
+    public void testRevealTemplatePrivateKeyThrowsInvalidEnvelopeOnMissingEnvelope()
+            throws IOException, InterruptedException {
+        // Server returns 200 but the response body has no encrypted_private_key field.
+        mockResponse("{\"key_version\":\"tmpl-42\"," +
+            "\"collector_id\":\"12345678\"," +
+            "\"fingerprint\":\"" + "a".repeat(64) + "\"}");
+
+        AccessGridClient.InvalidEnvelopeException ex = assertThrows(
+            AccessGridClient.InvalidEnvelopeException.class,
+            () -> client.console().revealTemplatePrivateKey("tmpl-42")
+        );
+        assertTrue(ex.getMessage().contains("encrypted_private_key"));
+    }
+
+    @Test
+    public void testRevealTemplatePrivateKeyThrowsInvalidEnvelopeOnMalformedEphemeralPubkey()
+            throws IOException, InterruptedException {
+        // Server returns 200 with a non-PEM ephemeral_public_key value.
+        mockResponse("{\"key_version\":\"tmpl-42\"," +
+            "\"collector_id\":\"12345678\"," +
+            "\"fingerprint\":\"" + "a".repeat(64) + "\"," +
+            "\"encrypted_private_key\":{" +
+                "\"alg\":\"ECDH-ES+A256GCM\"," +
+                "\"ephemeral_public_key\":\"NOT A PEM\"," +
+                "\"iv\":\"AAAAAAAAAAAAAAAA\"," +
+                "\"ciphertext\":\"AAAA\"," +
+                "\"tag\":\"AAAAAAAAAAAAAAAAAAAAAA==\"" +
+            "}}");
+
+        assertThrows(
+            AccessGridClient.InvalidEnvelopeException.class,
+            () -> client.console().revealTemplatePrivateKey("tmpl-42")
+        );
+    }
+
+    @Test
+    public void testRevealTemplatePrivateKeyThrowsDecryptExceptionOnTamperedTag() throws Exception {
+        // Server returns a well-formed envelope for the SDK's outgoing pubkey, but
+        // the auth tag is mutated so AES-GCM verification fails.
+        final String plaintextPem = "SENTINEL-NOT-A-CREDENTIAL";
+
+        @SuppressWarnings("unchecked")
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(200);
+        when(mockSender.send(any(HttpRequest.class))).thenAnswer(invocation -> {
+            HttpRequest sent = invocation.getArgument(0);
+            String requestBody = bodyOf(sent);
+            String clientPublicKeyPem = client.objectMapper.readTree(requestBody)
+                .get("client_public_key").asText();
+
+            FakeServerEnvelope envelope = simulateServerEncrypt(plaintextPem, clientPublicKeyPem);
+            // Flip a bit in the tag.
+            envelope.tag[0] ^= 0x01;
+
+            String responseJson = client.objectMapper.writeValueAsString(java.util.Map.of(
+                "key_version", "tmpl-42",
+                "collector_id", "12345678",
+                "fingerprint", "a".repeat(64),
+                "encrypted_private_key", java.util.Map.of(
+                    "alg", "ECDH-ES+A256GCM",
+                    "ephemeral_public_key", envelope.ephemeralPublicKeyPem,
+                    "iv", java.util.Base64.getEncoder().encodeToString(envelope.iv),
+                    "ciphertext", java.util.Base64.getEncoder().encodeToString(envelope.ciphertext),
+                    "tag", java.util.Base64.getEncoder().encodeToString(envelope.tag)
+                )
+            ));
+            when(response.body()).thenReturn(responseJson);
+            return response;
+        });
+
+        AccessGridClient.DecryptException ex = assertThrows(
+            AccessGridClient.DecryptException.class,
+            () -> client.console().revealTemplatePrivateKey("tmpl-42")
+        );
+        assertTrue(ex.getMessage().toLowerCase().contains("decryption failed")
+            || ex.getMessage().toLowerCase().contains("auth tag"));
+    }
+
     private static String bodyOf(HttpRequest request) {
         return request.bodyPublisher()
             .map(p -> {
