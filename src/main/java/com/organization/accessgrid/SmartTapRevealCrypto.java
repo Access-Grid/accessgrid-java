@@ -71,7 +71,7 @@ final class SmartTapRevealCrypto {
             }
             return new GeneratedKeyPair(pair, sw.toString());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate P-256 keypair", e);
+            throw new AccessGridClient.AccessGridException("Failed to generate P-256 keypair", e);
         }
     }
 
@@ -95,9 +95,13 @@ final class SmartTapRevealCrypto {
                 return (ECPublicKeyParameters) org.bouncycastle.crypto.util.PublicKeyFactory
                     .createKey((org.bouncycastle.asn1.x509.SubjectPublicKeyInfo) obj);
             }
-            throw new IllegalArgumentException("ephemeral_public_key is not a SubjectPublicKeyInfo PEM");
+            throw new AccessGridClient.InvalidEnvelopeException(
+                "ephemeral_public_key is not a SubjectPublicKeyInfo PEM");
+        } catch (AccessGridClient.InvalidEnvelopeException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse server ephemeral public key", e);
+            throw new AccessGridClient.InvalidEnvelopeException(
+                "Failed to parse server ephemeral public key", e);
         }
     }
 
@@ -117,7 +121,8 @@ final class SmartTapRevealCrypto {
             return trimmed;
         }
         if (unsigned.length > length) {
-            throw new IllegalStateException("ECDH shared secret exceeds expected length");
+            throw new AccessGridClient.InvalidEnvelopeException(
+                "ECDH shared secret exceeds expected length");
         }
         byte[] padded = new byte[length];
         System.arraycopy(unsigned, 0, padded, length - unsigned.length, unsigned.length);
@@ -151,7 +156,8 @@ final class SmartTapRevealCrypto {
             System.arraycopy(out, 0, trimmed, 0, len);
             return trimmed;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to decrypt SmartTap envelope", e);
+            throw new AccessGridClient.DecryptException(
+                "AES-GCM decryption failed (auth tag verification)", e);
         }
     }
 }

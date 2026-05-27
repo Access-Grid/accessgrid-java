@@ -22,7 +22,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  */
 public class AccessGridClient {
     private static final String DEFAULT_BASE_URL = "https://api.accessgrid.com/v1";
-    private static final String VERSION = "1.4.1";
+    private static final String VERSION = "1.4.2";
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
 
     private final String accountId;
@@ -303,7 +303,7 @@ public class AccessGridClient {
             );
 
             if (raw == null || raw.getEncryptedPrivateKey() == null)
-                throw new AccessGridException("Server response missing encrypted_private_key envelope");
+                throw new InvalidEnvelopeException("Server response missing encrypted_private_key envelope");
 
             Models.SmartTapRevealEnvelope envelope = raw.getEncryptedPrivateKey();
             byte[] iv = java.util.Base64.getDecoder().decode(envelope.getIv());
@@ -841,6 +841,36 @@ public class AccessGridClient {
         }
 
         public AccessGridException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    /**
+     * Thrown when a SmartTap reveal envelope is missing required fields,
+     * contains non-base64 / non-PEM data, or otherwise can't be parsed
+     * before the cryptographic operations begin.
+     */
+    public static class InvalidEnvelopeException extends AccessGridException {
+        public InvalidEnvelopeException(String message) {
+            super(message);
+        }
+
+        public InvalidEnvelopeException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    /**
+     * Thrown when AES-GCM auth-tag verification fails while decrypting a
+     * SmartTap reveal envelope (wrong key, tampered envelope, or wire-format
+     * drift between server and SDK).
+     */
+    public static class DecryptException extends AccessGridException {
+        public DecryptException(String message) {
+            super(message);
+        }
+
+        public DecryptException(String message, Throwable cause) {
             super(message, cause);
         }
     }
