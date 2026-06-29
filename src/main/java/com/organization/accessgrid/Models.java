@@ -172,6 +172,8 @@ public class Models {
         private int watchCount;
         @JsonProperty("iphone_count")
         private int iphoneCount;
+        @JsonProperty("android_device_limit")
+        private String androidDeviceLimit;
         @JsonProperty("background_color")
         private String backgroundColor;
         @JsonProperty("label_color")
@@ -208,6 +210,8 @@ public class Models {
         private int watchCount;
         @JsonProperty("iphone_count")
         private int iphoneCount;
+        @JsonProperty("android_device_limit")
+        private String androidDeviceLimit;
         @JsonProperty("background_color")
         private String backgroundColor;
         @JsonProperty("label_color")
@@ -300,6 +304,8 @@ public class Models {
         private int watchCount;
         @JsonProperty("iphone_count")
         private int iphoneCount;
+        @JsonProperty("android_device_limit")
+        private String androidDeviceLimit;
         @JsonProperty("issued_keys_count")
         private int issuedKeysCount;
         @JsonProperty("active_keys_count")

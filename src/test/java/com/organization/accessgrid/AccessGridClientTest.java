@@ -698,6 +698,7 @@ public class AccessGridClientTest {
             .allowOnMultipleDevices(true)
             .watchCount(2)
             .iphoneCount(3)
+            .androidDeviceLimit("all_devices")
             .backgroundColor("#FFFFFF")
             .labelColor("#000000")
             .labelSecondaryColor("#333333")
@@ -714,6 +715,7 @@ public class AccessGridClientTest {
         // Flat params at root level
         assertTrue(json.contains("\"background_color\":\"#FFFFFF\""), "background_color should be flat");
         assertTrue(json.contains("\"label_color\":\"#000000\""), "label_color should be flat");
+        assertTrue(json.contains("\"android_device_limit\":\"all_devices\""), "android_device_limit should be flat");
         assertTrue(json.contains("\"support_url\":\"https://help.example.com\""), "support_url should be flat");
         assertTrue(json.contains("\"support_email\":\"support@example.com\""), "support_email should be flat");
         assertTrue(json.contains("\"privacy_policy_url\":\"https://example.com/privacy\""), "privacy_policy_url should be flat");
@@ -729,6 +731,7 @@ public class AccessGridClientTest {
         Models.UpdateTemplateRequest request = Models.UpdateTemplateRequest.builder()
             .cardTemplateId("tmpl-123")
             .name("Updated Pass")
+            .androidDeviceLimit("all_devices")
             .backgroundColor("#FFFFFF")
             .labelColor("#000000")
             .supportUrl("https://help.example.com")
@@ -738,6 +741,7 @@ public class AccessGridClientTest {
         String json = client.objectMapper.writeValueAsString(request);
 
         assertTrue(json.contains("\"background_color\":\"#FFFFFF\""), "background_color should be flat");
+        assertTrue(json.contains("\"android_device_limit\":\"all_devices\""), "android_device_limit should be flat");
         assertTrue(json.contains("\"support_url\":\"https://help.example.com\""), "support_url should be flat");
         assertFalse(json.contains("\"design\""), "Should not have nested design object");
         assertFalse(json.contains("\"support_info\""), "Should not have nested support_info object");
