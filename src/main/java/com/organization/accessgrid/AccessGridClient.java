@@ -285,7 +285,7 @@ public class AccessGridClient {
          * @param templateId the card template ex_id to delete
          */
         public void deleteTemplate(String templateId) {
-            client.delete("/console/card-templates/" + templateId);
+            client.delete("/console/card-templates/" + templateId, templateId);
         }
 
         /**
@@ -613,7 +613,7 @@ public class AccessGridClient {
          * @param credentialProfileId the credential profile ex_id to delete
          */
         public void delete(String credentialProfileId) {
-            client.delete("/console/credential-profiles/" + credentialProfileId);
+            client.delete("/console/credential-profiles/" + credentialProfileId, credentialProfileId);
         }
     }
 
@@ -658,7 +658,7 @@ public class AccessGridClient {
          * @param webhookId the webhook id to delete
          */
         public void delete(String webhookId) {
-            client.delete("/console/webhooks/" + webhookId);
+            client.delete("/console/webhooks/" + webhookId, webhookId);
         }
 
         /**
@@ -805,10 +805,11 @@ public class AccessGridClient {
         }
     }
 
-    void delete(String path) {
+    void delete(String path, String resourceId) {
         try {
-            String signature = generateSignature("{}");
-            String encodedPayload = java.net.URLEncoder.encode("{}", StandardCharsets.UTF_8);
+            String idPayload = "{\"id\": \"" + resourceId + "\"}";
+            String signature = generateSignature(idPayload);
+            String encodedPayload = java.net.URLEncoder.encode(idPayload, StandardCharsets.UTF_8);
 
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + path + "?sig_payload=" + encodedPayload))

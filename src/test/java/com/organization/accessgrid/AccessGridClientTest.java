@@ -1028,6 +1028,10 @@ public class AccessGridClientTest {
         assertTrue(captured.uri().getPath().contains("/console/card-templates/tmpl-1"),
             "Should DELETE /console/card-templates/{id}");
         assertEquals("DELETE", captured.method());
+        // Empty-body DELETE: signature is verified via the sig_payload query param.
+        String tmplQuery = java.net.URLDecoder.decode(captured.uri().getRawQuery(), java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(tmplQuery.contains("sig_payload={\"id\": \"tmpl-1\"}"),
+            "Should sign the resource id via sig_payload; got: " + tmplQuery);
     }
 
     @Test
@@ -1040,6 +1044,10 @@ public class AccessGridClientTest {
         assertTrue(captured.uri().getPath().contains("/console/credential-profiles/cp_123"),
             "Should DELETE /console/credential-profiles/{id}");
         assertEquals("DELETE", captured.method());
+        // Empty-body DELETE: signature is verified via the sig_payload query param.
+        String cpQuery = java.net.URLDecoder.decode(captured.uri().getRawQuery(), java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(cpQuery.contains("sig_payload={\"id\": \"cp_123\"}"),
+            "Should sign the resource id via sig_payload; got: " + cpQuery);
     }
 
     @Test
