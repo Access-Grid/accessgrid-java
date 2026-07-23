@@ -14,7 +14,7 @@ Add the following dependency to your `pom.xml`:
 <dependency>
     <groupId>com.accessgrid</groupId>
     <artifactId>access-grid-sdk</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -23,7 +23,7 @@ Add the following dependency to your `pom.xml`:
 Add to your `build.gradle`:
 
 ```groovy
-implementation 'com.accessgrid:access-grid-sdk:1.5.0'
+implementation 'com.accessgrid:access-grid-sdk:1.6.0'
 ```
 
 ## Quick Start
