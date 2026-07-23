@@ -318,6 +318,9 @@ public class AccessGridClientTest {
         assertTrue(captured.uri().getPath().contains("/console/card-templates/tmpl-1/publish"),
             "Should POST /console/card-templates/{id}/publish");
         assertEquals("POST", captured.method());
+        // Body must be a non-empty {} so the request signs a verifiable payload
+        // (an empty body with no sig_payload would fail server-side auth).
+        assertEquals("{}", bodyOf(captured));
         assertEquals("tmpl-1", response.getId());
         assertEquals("in-review", response.getStatus());
     }

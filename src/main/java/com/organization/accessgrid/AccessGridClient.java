@@ -270,9 +270,11 @@ public class AccessGridClient {
          * @return the template id and resulting status ("publishing", "in-review", or "ready")
          */
         public Models.PublishTemplateResponse publishTemplate(String templateId) {
+            // Send a {} body so the request signs a verifiable payload; an empty
+            // body with no sig_payload would fail server-side auth.
             return client.post(
                 "/console/card-templates/" + templateId + "/publish",
-                "",
+                "{}",
                 Models.PublishTemplateResponse.class
             );
         }
