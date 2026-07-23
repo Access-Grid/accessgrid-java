@@ -69,6 +69,29 @@ Card card = client.accessCards().provision(request);
 System.out.printf("Install URL: %s%n", card.getUrl());
 ```
 
+### Provisioning a Multi-Family (Resident) Pass
+
+For `multi_family` templates, `ProvisionCardRequest` carries resident-specific fields:
+
+```java
+ProvisionCardRequest request = ProvisionCardRequest.builder()
+    .cardTemplateId("0xmultifam")
+    .fullName("Jane Resident")
+    .email("jane@example.com")
+    .propertyName("Riverside Apartments")
+    .propertyAddress("500 River Rd, Austin, TX 78701")
+    .buildingName("Building C")
+    .location("Austin")
+    .storageUnit("S-14")
+    .parkingAddress("Level 2, Spot 88")
+    .barcodeData("https://resident.example.com/jane")
+    .unitNumbers(List.of("C-204"))
+    .parkingDetails(List.of(ParkingDetail.builder().label("Reserved").value("P-88").build()))
+    .build();
+
+Card card = client.accessCards().provision(request);
+```
+
 ### Getting an Access Card
 
 ```java
@@ -214,6 +237,12 @@ System.out.printf("Template ID: %s%n", result.getId());
 System.out.printf("Status: %s%n", result.getStatus());
 ```
 
+### Deleting a Card Template
+
+```java
+client.console().deleteTemplate("0xd3adb00b5");
+```
+
 ### Revealing a SmartTap Private Key
 
 ```java
@@ -357,6 +386,12 @@ System.out.printf("Profile created: %s%n", profile.getId());
 System.out.printf("AID: %s%n", profile.getAid());
 ```
 
+#### Delete a Credential Profile
+
+```java
+client.console().credentialProfiles().delete("a1b2c3d4e5f");
+```
+
 ## Error Handling
 
 ```java
@@ -390,6 +425,7 @@ try {
 | PUT /v1/console/card-templates/{id} | `console().updateTemplate()` | Y |
 | GET /v1/console/card-templates/{id} | `console().readTemplate()` | Y |
 | POST /v1/console/card-templates/{id}/publish | `console().publishTemplate()` | Y |
+| DELETE /v1/console/card-templates/{id} | `console().deleteTemplate()` | Y |
 | POST /v1/console/card-templates/{id}/smart-tap/reveal | `console().revealTemplatePrivateKey()` | Y |
 | GET /v1/console/card-templates/{id}/logs | `console().eventLog()` | Y |
 | GET /v1/console/card-template-pairs | `console().listPassTemplatePairs()` | Y |
@@ -401,9 +437,11 @@ try {
 | PUT /v1/console/landing-pages/{id} | `console().updateLandingPage()` | Y |
 | GET /v1/console/credential-profiles | `console().credentialProfiles().list()` | Y |
 | POST /v1/console/credential-profiles | `console().credentialProfiles().create()` | Y |
+| DELETE /v1/console/credential-profiles/{id} | `console().credentialProfiles().delete()` | Y |
 | GET /v1/console/webhooks | `console().webhooks().list()` | Y |
 | POST /v1/console/webhooks | `console().webhooks().create()` | Y |
 | DELETE /v1/console/webhooks/{id} | `console().webhooks().delete()` | Y |
+| POST /v1/console/webhooks/{id}/verify | `console().webhooks().verify()` | Y |
 | POST /v1/console/hid/orgs | `console().hid().orgs().create()` | Y |
 | POST /v1/console/hid/orgs/activate | `console().hid().orgs().activate()` | Y |
 | GET /v1/console/hid/orgs | `console().hid().orgs().list()` | Y |

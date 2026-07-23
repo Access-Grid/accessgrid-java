@@ -278,6 +278,15 @@ public class AccessGridClient {
         }
 
         /**
+         * Delete a card template.
+         *
+         * @param templateId the card template ex_id to delete
+         */
+        public void deleteTemplate(String templateId) {
+            client.delete("/console/card-templates/" + templateId);
+        }
+
+        /**
          * Reveal the SmartTap private key for a card template.
          *
          * <p>The SDK generates a P-256 keypair locally, submits the public key to
@@ -595,6 +604,15 @@ public class AccessGridClient {
             String payload = client.serialize(request);
             return client.post("/console/credential-profiles", payload, Models.CredentialProfile.class);
         }
+
+        /**
+         * Delete a credential profile.
+         *
+         * @param credentialProfileId the credential profile ex_id to delete
+         */
+        public void delete(String credentialProfileId) {
+            client.delete("/console/credential-profiles/" + credentialProfileId);
+        }
     }
 
     /**
@@ -639,6 +657,20 @@ public class AccessGridClient {
          */
         public void delete(String webhookId) {
             client.delete("/console/webhooks/" + webhookId);
+        }
+
+        /**
+         * Trigger verification for a webhook.
+         *
+         * @param webhookId the webhook id to verify
+         * @return the verification result ({@code verified} is true if already verified)
+         */
+        public Models.WebhookVerification verify(String webhookId) {
+            return client.post(
+                "/console/webhooks/" + webhookId + "/verify",
+                "{}",
+                Models.WebhookVerification.class
+            );
         }
     }
 

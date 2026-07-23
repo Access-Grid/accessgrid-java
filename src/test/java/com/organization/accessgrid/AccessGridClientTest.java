@@ -1013,6 +1013,92 @@ public class AccessGridClientTest {
         assertTrue(json.contains("\"hex_key_2\""), "key values should be serialized");
     }
 
+    // --- Console: delete card template, delete credential profile, verify webhook ---
+
+    @Test
+    public void testDeleteTemplateSendsDeleteToCardTemplates() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"tmpl-1\",\"deactivated\":true}");
+
+        client.console().deleteTemplate("tmpl-1");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/card-templates/tmpl-1"),
+            "Should DELETE /console/card-templates/{id}");
+        assertEquals("DELETE", captured.method());
+    }
+
+    @Test
+    public void testDeleteCredentialProfileSendsDelete() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"cp_123\",\"deactivated\":true}");
+
+        client.console().credentialProfiles().delete("cp_123");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/credential-profiles/cp_123"),
+            "Should DELETE /console/credential-profiles/{id}");
+        assertEquals("DELETE", captured.method());
+    }
+
+    @Test
+    public void testVerifyWebhookReturnsVerifiedTrue() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"wh_123\",\"verified\":true}");
+
+        Models.WebhookVerification result = client.console().webhooks().verify("wh_123");
+
+        HttpRequest captured = captureRequest();
+        assertTrue(captured.uri().getPath().contains("/console/webhooks/wh_123/verify"),
+            "Should POST /console/webhooks/{id}/verify");
+        assertEquals("POST", captured.method());
+        assertEquals("wh_123", result.getId());
+        assertTrue(result.isVerified());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testVerifyWebhookReturnsVerifiedFalseOn202() throws IOException, InterruptedException {
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(202);
+        when(response.body()).thenReturn("{\"id\":\"wh_123\",\"verified\":false}");
+        when(mockSender.send(any(HttpRequest.class))).thenReturn(response);
+
+        Models.WebhookVerification result = client.console().webhooks().verify("wh_123");
+
+        assertFalse(result.isVerified());
+    }
+
+    @Test
+    public void testProvisionMultiFamilySerializesResidentFields() throws IOException, InterruptedException {
+        mockResponse("{\"id\":\"0xres1d\",\"full_name\":\"Jane Resident\",\"state\":\"active\"}");
+
+        Models.ProvisionCardRequest request = Models.ProvisionCardRequest.builder()
+            .cardTemplateId("0xmultifam")
+            .fullName("Jane Resident")
+            .email("jane@example.com")
+            .propertyName("Riverside Apartments")
+            .propertyAddress("500 River Rd, Austin, TX 78701")
+            .buildingName("Building C")
+            .location("Austin")
+            .storageUnit("S-14")
+            .parkingAddress("Level 2, Spot 88")
+            .barcodeData("https://resident.example.com/jane")
+            .unitNumbers(java.util.List.of("C-204", "C-205"))
+            .parkingDetails(java.util.List.of(
+                Models.ParkingDetail.builder().label("Reserved").value("P-88").build()))
+            .build();
+
+        client.accessCards().provision(request);
+
+        String body = bodyOf(captureRequest());
+        assertTrue(body.contains("\"property_name\":\"Riverside Apartments\""), body);
+        assertTrue(body.contains("\"property_address\":\"500 River Rd, Austin, TX 78701\""), body);
+        assertTrue(body.contains("\"building_name\":\"Building C\""), body);
+        assertTrue(body.contains("\"storage_unit\":\"S-14\""), body);
+        assertTrue(body.contains("\"parking_address\":\"Level 2, Spot 88\""), body);
+        assertTrue(body.contains("\"barcode_data\":\"https://resident.example.com/jane\""), body);
+        assertTrue(body.contains("\"unit_numbers\":[\"C-204\",\"C-205\"]"), body);
+        assertTrue(body.contains("\"parking_details\":[{\"label\":\"Reserved\",\"value\":\"P-88\"}]"), body);
+    }
+
     // --- Error handling ---
 
     @Test
