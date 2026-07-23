@@ -75,6 +75,23 @@ public class Models {
         private String employeePhoto;
         private String title;
         private java.util.Map<String, Object> metadata;
+        // Multi-family (Resident Key) fields — for multi_family use-case templates.
+        @JsonProperty("property_name")
+        private String propertyName;
+        @JsonProperty("property_address")
+        private String propertyAddress;
+        @JsonProperty("building_name")
+        private String buildingName;
+        @JsonProperty("storage_unit")
+        private String storageUnit;
+        @JsonProperty("parking_address")
+        private String parkingAddress;
+        @JsonProperty("barcode_data")
+        private String barcodeData;
+        @JsonProperty("unit_numbers")
+        private List<String> unitNumbers;
+        @JsonProperty("parking_details")
+        private List<ParkingDetail> parkingDetails;
     }
 
     /**
@@ -106,6 +123,35 @@ public class Models {
         @JsonProperty("employee_photo")
         private String employeePhoto;
         private String title;
+        // Multi-family (Resident Key) fields — for multi_family use-case templates.
+        @JsonProperty("property_name")
+        private String propertyName;
+        @JsonProperty("property_address")
+        private String propertyAddress;
+        @JsonProperty("building_name")
+        private String buildingName;
+        @JsonProperty("storage_unit")
+        private String storageUnit;
+        @JsonProperty("parking_address")
+        private String parkingAddress;
+        @JsonProperty("barcode_data")
+        private String barcodeData;
+        @JsonProperty("unit_numbers")
+        private List<String> unitNumbers;
+        @JsonProperty("parking_details")
+        private List<ParkingDetail> parkingDetails;
+    }
+
+    /**
+     * A single label/value parking entry on a multi-family pass.
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ParkingDetail {
+        private String label;
+        private String value;
     }
 
     /**
@@ -810,6 +856,17 @@ public class Models {
         private String clientCert;
         @JsonProperty("cert_expires_at")
         private String certExpiresAt;
+    }
+
+    /**
+     * Result of triggering a webhook verification.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WebhookVerification {
+        private String id;
+        private boolean verified;
     }
 
     /**

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  */
 public class AccessGridClient {
     private static final String DEFAULT_BASE_URL = "https://api.accessgrid.com/v1";
-    private static final String VERSION = "1.5.0";
+    private static final String VERSION = "1.6.0";
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
 
     private final String accountId;
@@ -270,11 +270,22 @@ public class AccessGridClient {
          * @return the template id and resulting status ("publishing", "in-review", or "ready")
          */
         public Models.PublishTemplateResponse publishTemplate(String templateId) {
+            // Send a {} body so the request signs a verifiable payload; an empty
+            // body with no sig_payload would fail server-side auth.
             return client.post(
                 "/console/card-templates/" + templateId + "/publish",
-                "",
+                "{}",
                 Models.PublishTemplateResponse.class
             );
+        }
+
+        /**
+         * Delete a card template.
+         *
+         * @param templateId the card template ex_id to delete
+         */
+        public void deleteTemplate(String templateId) {
+            client.delete("/console/card-templates/" + templateId, templateId);
         }
 
         /**
@@ -595,6 +606,15 @@ public class AccessGridClient {
             String payload = client.serialize(request);
             return client.post("/console/credential-profiles", payload, Models.CredentialProfile.class);
         }
+
+        /**
+         * Delete a credential profile.
+         *
+         * @param credentialProfileId the credential profile ex_id to delete
+         */
+        public void delete(String credentialProfileId) {
+            client.delete("/console/credential-profiles/" + credentialProfileId, credentialProfileId);
+        }
     }
 
     /**
@@ -638,7 +658,21 @@ public class AccessGridClient {
          * @param webhookId the webhook id to delete
          */
         public void delete(String webhookId) {
-            client.delete("/console/webhooks/" + webhookId);
+            client.delete("/console/webhooks/" + webhookId, webhookId);
+        }
+
+        /**
+         * Trigger verification for a webhook.
+         *
+         * @param webhookId the webhook id to verify
+         * @return the verification result ({@code verified} is true if already verified)
+         */
+        public Models.WebhookVerification verify(String webhookId) {
+            return client.post(
+                "/console/webhooks/" + webhookId + "/verify",
+                "{}",
+                Models.WebhookVerification.class
+            );
         }
     }
 
@@ -771,10 +805,11 @@ public class AccessGridClient {
         }
     }
 
-    void delete(String path) {
+    void delete(String path, String resourceId) {
         try {
-            String signature = generateSignature("{}");
-            String encodedPayload = java.net.URLEncoder.encode("{}", StandardCharsets.UTF_8);
+            String idPayload = "{\"id\": \"" + resourceId + "\"}";
+            String signature = generateSignature(idPayload);
+            String encodedPayload = java.net.URLEncoder.encode(idPayload, StandardCharsets.UTF_8);
 
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + path + "?sig_payload=" + encodedPayload))
